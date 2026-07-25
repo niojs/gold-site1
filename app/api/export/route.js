@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../lib/db';
+import { query } from '../../../lib/db';
 
 export async function GET(request) {
   const cookieStore = await cookies();
@@ -10,8 +10,8 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   const role = user?.role;
 
   if (!['admin', 'chief_geologist'].includes(role)) {
@@ -32,21 +32,21 @@ export async function GET(request) {
   let fileName = 'all_data';
 
   if (table && tables[table]) {
-    data = db.prepare(`SELECT * FROM ${tables[table]}`).all();
+    const result = await query(`SELECT * FROM ${tables[table]}`);
+    data = result.rows;
     fileName = table;
   } else {
-    const drilling = db.prepare('SELECT * FROM drilling_records').all();
-    const field = db.prepare('SELECT * FROM field_data').all();
-    const washing = db.prepare('SELECT * FROM washing_data').all();
-    const assay = db.prepare('SELECT * FROM assay_data').all();
-    data = [...drilling, ...field, ...washing, ...assay];
+    const drilling = await query('SELECT * FROM drilling_records');
+    const field = await query('SELECT * FROM field_data');
+    const washing = await query('SELECT * FROM washing_data');
+    const assay = await query('SELECT * FROM assay_data');
+    data = [...drilling.rows, ...field.rows, ...washing.rows, ...assay.rows];
   }
 
   if (data.length === 0) {
     return new Response('Нет данных для экспорта', { status: 404 });
   }
 
-  // Формируем CSV с разделителем ; и экранируем кавычки
   const headers = Object.keys(data[0]);
   const csvRows = [];
   csvRows.push(headers.join(';'));
@@ -54,7 +54,6 @@ export async function GET(request) {
   for (const row of data) {
     const values = headers.map(header => {
       let value = row[header] !== undefined ? String(row[header]) : '';
-      // Экранируем кавычки и оборачиваем в кавычки, если есть ; или "
       if (value.includes('"') || value.includes(';') || value.includes('\n')) {
         value = `"${value.replace(/"/g, '""')}"`;
       }
@@ -64,7 +63,6 @@ export async function GET(request) {
   }
 
   const csvContent = csvRows.join('\n');
-  // Добавляем BOM для Excel (UTF-8 с BOM)
   const bom = '\uFEFF';
   const finalContent = bom + csvContent;
 
