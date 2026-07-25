@@ -59,7 +59,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка сохранения:', error);
+    console.error('Ошибка сохранения данных проб:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
@@ -109,7 +109,7 @@ export async function PUT(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка обновления:', error);
+    console.error('Ошибка обновления данных проб:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
@@ -151,7 +151,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка удаления:', error);
+    console.error('Ошибка удаления данных проб:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
