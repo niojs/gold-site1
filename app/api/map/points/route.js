@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../../lib/db';
+import { query } from '../../../../lib/db';
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -10,37 +10,41 @@ export async function GET() {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  // Получаем точки из разных таблиц
-  const drillingPoints = db.prepare(`
-    SELECT 
-      id,
-      site as name,
-      hole_number,
-      coordinates,
-      date,
-      'drilling' as type,
-      'Скважина' as layer
-    FROM drilling_records
-    WHERE coordinates IS NOT NULL AND coordinates != ''
-  `).all();
+  try {
+    // Получаем точки из drilling_records
+    const drillingResult = await query(`
+      SELECT 
+        id,
+        site as name,
+        hole_number,
+        coordinates,
+        date,
+        'drilling' as type,
+        'Скважина' as layer
+      FROM drilling_records
+      WHERE coordinates IS NOT NULL AND coordinates != ''
+    `);
 
-  const fieldPoints = db.prepare(`
-    SELECT 
-      id,
-      site as name,
-      hole_number,
-      coordinates,
-      date,
-      'field' as type,
-      'Участок' as layer
-    FROM field_data
-    WHERE coordinates IS NOT NULL AND coordinates != ''
-  `).all();
+    // Получаем точки из field_data
+    const fieldResult = await query(`
+      SELECT 
+        id,
+        site as name,
+        hole_number,
+        coordinates,
+        date,
+        'field' as type,
+        'Участок' as layer
+      FROM field_data
+      WHERE coordinates IS NOT NULL AND coordinates != ''
+    `);
 
-  // Объединяем
-  const allPoints = [...drillingPoints, ...fieldPoints];
-
-  return NextResponse.json(allPoints);
+    const allPoints = [...drillingResult.rows, ...fieldResult.rows];
+    return NextResponse.json(allPoints);
+  } catch (error) {
+    console.error('Ошибка загрузки точек карты:', error);
+    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
+  }
 }
 
 // ========== ДОБАВЛЕНИЕ ТОЧКИ ==========
@@ -59,19 +63,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Название и координаты обязательны' }, { status: 400 });
     }
 
-    // Определяем таблицу для вставки
-    let table = 'drilling_records';
-    let fields = 'site, coordinates, hole_number, date, user_id';
-    let values = `'${name}', '${coordinates}', '${holeNumber || ''}', '${date || ''}', '${sessionId}'`;
+    const id = Date.now().toString();
+    const created_at = new Date().toISOString();
 
     if (type === 'field') {
-      table = 'field_data';
-      fields = 'site, coordinates, hole_number, date, user_id';
-      values = `'${name}', '${coordinates}', '${holeNumber || ''}', '${date || ''}', '${sessionId}'`;
+      await query(
+        `INSERT INTO field_data (id, site, coordinates, hole_number, date, user_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, name, coordinates, holeNumber || '', date || '', sessionId, created_at]
+      );
+    } else {
+      await query(
+        `INSERT INTO drilling_records (id, site, coordinates, hole_number, date, user_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, name, coordinates, holeNumber || '', date || '', sessionId, created_at]
+      );
     }
-
-    const id = Date.now().toString();
-    db.prepare(`INSERT INTO ${table} (id, ${fields}) VALUES ('${id}', ${values})`).run();
 
     return NextResponse.json({ success: true, id });
   } catch (error) {

@@ -30,11 +30,11 @@ export async function GET() {
         UNION ALL
         SELECT id FROM field_data WHERE date >= CURRENT_DATE - INTERVAL '30 days'
         UNION ALL
-        SELECT id FROM washing_data WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+        SELECT id FROM washing_data WHERE created_at::date >= CURRENT_DATE - INTERVAL '30 days'
       )
     `);
 
-    const avgGrade = await query('SELECT AVG(CAST(ugv AS REAL)) as avg FROM field_data WHERE ugv IS NOT NULL');
+    const avgGrade = await query('SELECT AVG(ugv) as avg FROM field_data WHERE ugv IS NOT NULL');
 
     const monthly = await query(`
       SELECT 
