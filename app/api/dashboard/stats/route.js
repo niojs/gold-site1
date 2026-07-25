@@ -24,7 +24,7 @@ export async function GET() {
     const washingTotal = await query('SELECT COUNT(*) as count FROM washing_data');
     const total = (drillingTotal.rows[0]?.count || 0) + (fieldTotal.rows[0]?.count || 0) + (washingTotal.rows[0]?.count || 0);
 
-    // Исправлено: приводим date к DATE
+    // Явно приводим все date к DATE
     const active = await query(`
       SELECT COUNT(*) as count FROM (
         SELECT id FROM drilling_records WHERE date::date >= CURRENT_DATE - INTERVAL '30 days'
@@ -39,7 +39,7 @@ export async function GET() {
 
     const monthly = await query(`
       SELECT 
-        TO_CHAR(created_at, 'MM') as month,
+        TO_CHAR(created_at::date, 'MM') as month,
         COUNT(*) as count
       FROM (
         SELECT created_at FROM drilling_records
@@ -48,8 +48,8 @@ export async function GET() {
         UNION ALL
         SELECT created_at FROM washing_data
       )
-      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
-      GROUP BY TO_CHAR(created_at, 'MM')
+      WHERE created_at::date >= CURRENT_DATE - INTERVAL '6 months'
+      GROUP BY TO_CHAR(created_at::date, 'MM')
       ORDER BY month
     `);
 
