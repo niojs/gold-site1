@@ -24,11 +24,12 @@ export async function GET() {
     const washingTotal = await query('SELECT COUNT(*) as count FROM washing_data');
     const total = (drillingTotal.rows[0]?.count || 0) + (fieldTotal.rows[0]?.count || 0) + (washingTotal.rows[0]?.count || 0);
 
+    // Исправлено: приводим date к DATE
     const active = await query(`
       SELECT COUNT(*) as count FROM (
-        SELECT id FROM drilling_records WHERE date >= CURRENT_DATE - INTERVAL '30 days'
+        SELECT id FROM drilling_records WHERE date::date >= CURRENT_DATE - INTERVAL '30 days'
         UNION ALL
-        SELECT id FROM field_data WHERE date >= CURRENT_DATE - INTERVAL '30 days'
+        SELECT id FROM field_data WHERE date::date >= CURRENT_DATE - INTERVAL '30 days'
         UNION ALL
         SELECT id FROM washing_data WHERE created_at::date >= CURRENT_DATE - INTERVAL '30 days'
       )
