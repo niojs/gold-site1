@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../lib/db';
+import { query } from '../../../lib/db';
 
-// ========== ПОЛУЧИТЬ ЗАПИСИ ==========
 export async function GET() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
@@ -11,29 +10,23 @@ export async function GET() {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   const role = user?.role;
 
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    // Админ и главный геолог видят все записи
-    const stmt = db.prepare('SELECT * FROM field_data ORDER BY created_at DESC');
-    records = stmt.all();
+    const result = await query('SELECT * FROM field_data ORDER BY created_at DESC');
+    records = result.rows;
   } else if (role === 'field_geologist') {
-    // Полевой геолог видит только свои записи
-    const stmt = db.prepare('SELECT * FROM field_data WHERE user_id = ? ORDER BY created_at DESC');
-    records = stmt.all(sessionId);
-  } else {
-    // Остальные роли не видят полевые данные
-    records = [];
+    const result = await query('SELECT * FROM field_data WHERE user_id = $1 ORDER BY created_at DESC', [sessionId]);
+    records = result.rows;
   }
 
   return NextResponse.json(records);
 }
 
-// ========== ДОБАВИТЬ ЗАПИСЬ ==========
 export async function POST(request) {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
@@ -42,9 +35,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  // Проверяем, что пользователь — полевой геолог
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'field_geologist' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -71,38 +63,36 @@ export async function POST(request) {
     const id = Date.now().toString();
     const created_at = new Date().toISOString();
 
-    const stmt = db.prepare(`
-      INSERT INTO field_data (
+    await query(
+      `INSERT INTO field_data (
         id, user_id, hole_number, coordinates, line_height, intervals,
         geological_description, ugv, date, time, site, diameter, core_recovery, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    stmt.run(
-      id,
-      sessionId,
-      holeNumber,
-      coordinates,
-      parseFloat(lineHeight) || 0,
-      intervals || '',
-      geologicalDescription || '',
-      parseFloat(ugv) || 0,
-      date || '',
-      time || '',
-      site,
-      parseFloat(diameter) || 0,
-      parseFloat(coreRecovery) || 0,
-      created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [
+        id,
+        sessionId,
+        holeNumber,
+        coordinates,
+        parseFloat(lineHeight) || 0,
+        intervals || '',
+        geologicalDescription || '',
+        parseFloat(ugv) || 0,
+        date || '',
+        time || '',
+        site,
+        parseFloat(diameter) || 0,
+        parseFloat(coreRecovery) || 0,
+        created_at,
+      ]
     );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка сохранения полевых данных:', error);
+    console.error('Ошибка сохранения:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
 
-// ========== РЕДАКТИРОВАТЬ ЗАПИСЬ ==========
 export async function PUT(request) {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
@@ -111,9 +101,8 @@ export async function PUT(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  // Проверяем права
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'field_geologist' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -138,21 +127,20 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Все обязательные поля должны быть заполнены' }, { status: 400 });
     }
 
-    // Проверяем, что запись принадлежит пользователю (или он админ)
-    let query = `
+    let queryText = `
       UPDATE field_data SET
-        hole_number = ?,
-        coordinates = ?,
-        line_height = ?,
-        intervals = ?,
-        geological_description = ?,
-        ugv = ?,
-        date = ?,
-        time = ?,
-        site = ?,
-        diameter = ?,
-        core_recovery = ?
-      WHERE id = ?
+        hole_number = $1,
+        coordinates = $2,
+        line_height = $3,
+        intervals = $4,
+        geological_description = $5,
+        ugv = $6,
+        date = $7,
+        time = $8,
+        site = $9,
+        diameter = $10,
+        core_recovery = $11
+      WHERE id = $12
     `;
     const params = [
       holeNumber,
@@ -170,25 +158,23 @@ export async function PUT(request) {
     ];
 
     if (user?.role !== 'admin') {
-      query += ' AND user_id = ?';
+      queryText += ' AND user_id = $13';
       params.push(sessionId);
     }
 
-    const stmt = db.prepare(query);
-    const result = stmt.run(...params);
+    const result = await query(queryText, params);
 
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Запись не найдена или доступ запрещен' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка обновления полевых данных:', error);
+    console.error('Ошибка обновления:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
 
-// ========== УДАЛИТЬ ЗАПИСЬ ==========
 export async function DELETE(request) {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
@@ -197,9 +183,8 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  // Проверяем права
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'field_geologist' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -211,24 +196,23 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
-    let query = 'DELETE FROM field_data WHERE id = ?';
+    let queryText = 'DELETE FROM field_data WHERE id = $1';
     const params = [id];
 
     if (user?.role !== 'admin') {
-      query += ' AND user_id = ?';
+      queryText += ' AND user_id = $2';
       params.push(sessionId);
     }
 
-    const stmt = db.prepare(query);
-    const result = stmt.run(...params);
+    const result = await query(queryText, params);
 
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Запись не найдена или доступ запрещен' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка удаления полевых данных:', error);
+    console.error('Ошибка удаления:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }

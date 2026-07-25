@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import db from '../../../lib/db';
+import { query } from '../../../lib/db';
 
 export async function POST(request) {
   try {
@@ -14,8 +14,8 @@ export async function POST(request) {
       );
     }
 
-    const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
-    const user = stmt.get(username);
+    const result = await query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = result.rows[0];
 
     if (!user) {
       return NextResponse.json(

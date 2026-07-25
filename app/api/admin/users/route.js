@@ -1,29 +1,26 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../../lib/db';
+import { query } from '../../../../lib/db';
 import bcrypt from 'bcryptjs';
 
 async function isAdmin() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
   if (!sessionId) return false;
-  const stmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = stmt.get(sessionId);
+  const result = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = result.rows[0];
   return user?.role === 'admin';
 }
 
-// ========== ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ ==========
 export async function GET() {
   if (!await isAdmin()) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
 
-  const stmt = db.prepare('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
-  const users = stmt.all();
-  return NextResponse.json(users);
+  const result = await query('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
+  return NextResponse.json(result.rows);
 }
 
-// ========== ДОБАВИТЬ НОВОГО ПОЛЬЗОВАТЕЛЯ ==========
 export async function POST(request) {
   if (!await isAdmin()) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
@@ -36,8 +33,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 });
     }
 
-    const checkStmt = db.prepare('SELECT * FROM users WHERE username = ?');
-    if (checkStmt.get(username)) {
+    const existing = await query('SELECT * FROM users WHERE username = $1', [username]);
+    if (existing.rows.length > 0) {
       return NextResponse.json({ error: 'Логин уже существует' }, { status: 400 });
     }
 
@@ -45,10 +42,10 @@ export async function POST(request) {
     const passwordHash = bcrypt.hashSync(password, 10);
     const created_at = new Date().toISOString();
 
-    const stmt = db.prepare(
-      'INSERT INTO users (id, username, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
+    await query(
+      'INSERT INTO users (id, username, password_hash, role, created_at) VALUES ($1, $2, $3, $4, $5)',
+      [id, username, passwordHash, role, created_at]
     );
-    stmt.run(id, username, passwordHash, role, created_at);
 
     return NextResponse.json({ id, username, role, created_at });
   } catch (error) {
@@ -57,7 +54,6 @@ export async function POST(request) {
   }
 }
 
-// ========== ИЗМЕНИТЬ РОЛЬ ==========
 export async function PUT(request) {
   if (!await isAdmin()) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
@@ -70,10 +66,9 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'ID и роль обязательны' }, { status: 400 });
     }
 
-    const stmt = db.prepare('UPDATE users SET role = ? WHERE id = ?');
-    const result = stmt.run(role, id);
+    const result = await query('UPDATE users SET role = $1 WHERE id = $2 RETURNING id', [role, id]);
 
-    if (result.changes === 0) {
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
     }
 
@@ -84,7 +79,6 @@ export async function PUT(request) {
   }
 }
 
-// ========== УДАЛИТЬ ПОЛЬЗОВАТЕЛЯ ==========
 export async function DELETE(request) {
   if (!await isAdmin()) {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
@@ -97,16 +91,14 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
-    const checkStmt = db.prepare('SELECT username FROM users WHERE id = ?');
-    const user = checkStmt.get(id);
-    if (user?.username === 'admin') {
+    const userCheck = await query('SELECT username FROM users WHERE id = $1', [id]);
+    if (userCheck.rows.length > 0 && userCheck.rows[0].username === 'admin') {
       return NextResponse.json({ error: 'Нельзя удалить администратора' }, { status: 403 });
     }
 
-    const stmt = db.prepare('DELETE FROM users WHERE id = ?');
-    const result = stmt.run(id);
+    const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
 
-    if (result.changes === 0) {
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
     }
 

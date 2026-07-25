@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../../lib/db';
+import { query } from '../../../../lib/db';
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -10,9 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  // Проверяем роль
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   const role = user?.role;
 
   if (!['admin', 'field_geologist', 'chief_geologist'].includes(role)) {
@@ -20,30 +19,26 @@ export async function GET() {
   }
 
   try {
-    // Подсчёт записей
-    const drillingTotal = db.prepare('SELECT COUNT(*) as count FROM drilling_records').get();
-    const fieldTotal = db.prepare('SELECT COUNT(*) as count FROM field_data').get();
-    const washingTotal = db.prepare('SELECT COUNT(*) as count FROM washing_data').get();
-    const total = (drillingTotal?.count || 0) + (fieldTotal?.count || 0) + (washingTotal?.count || 0);
+    const drillingTotal = await query('SELECT COUNT(*) as count FROM drilling_records');
+    const fieldTotal = await query('SELECT COUNT(*) as count FROM field_data');
+    const washingTotal = await query('SELECT COUNT(*) as count FROM washing_data');
+    const total = (drillingTotal.rows[0]?.count || 0) + (fieldTotal.rows[0]?.count || 0) + (washingTotal.rows[0]?.count || 0);
 
-    // Активные за 30 дней
-    const active = db.prepare(`
+    const active = await query(`
       SELECT COUNT(*) as count FROM (
-        SELECT id FROM drilling_records WHERE date >= date('now', '-30 days')
+        SELECT id FROM drilling_records WHERE date >= CURRENT_DATE - INTERVAL '30 days'
         UNION ALL
-        SELECT id FROM field_data WHERE date >= date('now', '-30 days')
+        SELECT id FROM field_data WHERE date >= CURRENT_DATE - INTERVAL '30 days'
         UNION ALL
-        SELECT id FROM washing_data WHERE created_at >= date('now', '-30 days')
+        SELECT id FROM washing_data WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
       )
-    `).get();
+    `);
 
-    // Средняя проба
-    const avgGrade = db.prepare('SELECT AVG(CAST(ugv AS REAL)) as avg FROM field_data WHERE ugv IS NOT NULL').get();
+    const avgGrade = await query('SELECT AVG(CAST(ugv AS REAL)) as avg FROM field_data WHERE ugv IS NOT NULL');
 
-    // Данные для графика
-    const monthly = db.prepare(`
+    const monthly = await query(`
       SELECT 
-        strftime('%m', created_at) as month,
+        TO_CHAR(created_at, 'MM') as month,
         COUNT(*) as count
       FROM (
         SELECT created_at FROM drilling_records
@@ -52,20 +47,20 @@ export async function GET() {
         UNION ALL
         SELECT created_at FROM washing_data
       )
-      WHERE created_at >= date('now', '-6 months')
-      GROUP BY month
+      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
+      GROUP BY TO_CHAR(created_at, 'MM')
       ORDER BY month
-    `).all();
+    `);
 
-    const monthlyData = monthly.map((row) => ({
+    const monthlyData = monthly.rows.map((row) => ({
       month: row.month,
-      count: row.count,
+      count: parseInt(row.count, 10),
     }));
 
     return NextResponse.json({
       total,
-      active: active?.count || 0,
-      avgGrade: avgGrade?.avg || 0,
+      active: active.rows[0]?.count || 0,
+      avgGrade: avgGrade.rows[0]?.avg || 0,
       monthlyData,
     });
   } catch (error) {

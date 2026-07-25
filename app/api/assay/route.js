@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../lib/db';
+import { query } from '../../../lib/db';
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -10,20 +10,18 @@ export async function GET() {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   const role = user?.role;
 
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    const stmt = db.prepare('SELECT * FROM assay_data ORDER BY created_at DESC');
-    records = stmt.all();
+    const result = await query('SELECT * FROM assay_data ORDER BY created_at DESC');
+    records = result.rows;
   } else if (role === 'sampler') {
-    const stmt = db.prepare('SELECT * FROM assay_data WHERE user_id = ? ORDER BY created_at DESC');
-    records = stmt.all(sessionId);
-  } else {
-    records = [];
+    const result = await query('SELECT * FROM assay_data WHERE user_id = $1 ORDER BY created_at DESC', [sessionId]);
+    records = result.rows;
   }
 
   return NextResponse.json(records);
@@ -37,8 +35,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'sampler' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -53,16 +51,15 @@ export async function POST(request) {
     const id = Date.now().toString();
     const created_at = new Date().toISOString();
 
-    const stmt = db.prepare(`
-      INSERT INTO assay_data (id, user_id, hole_number, interval, reserves, marks, sample_weight, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    stmt.run(id, sessionId, holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), created_at);
+    await query(
+      `INSERT INTO assay_data (id, user_id, hole_number, interval, reserves, marks, sample_weight, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, sessionId, holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), created_at]
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка сохранения данных проб:', error);
+    console.error('Ошибка сохранения:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
@@ -75,8 +72,8 @@ export async function PUT(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'sampler' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -88,32 +85,31 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Все обязательные поля должны быть заполнены' }, { status: 400 });
     }
 
-    let query = `
+    let queryText = `
       UPDATE assay_data SET
-        hole_number = ?,
-        interval = ?,
-        reserves = ?,
-        marks = ?,
-        sample_weight = ?
-      WHERE id = ?
+        hole_number = $1,
+        interval = $2,
+        reserves = $3,
+        marks = $4,
+        sample_weight = $5
+      WHERE id = $6
     `;
     const params = [holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), id];
 
     if (user?.role !== 'admin') {
-      query += ' AND user_id = ?';
+      queryText += ' AND user_id = $7';
       params.push(sessionId);
     }
 
-    const stmt = db.prepare(query);
-    const result = stmt.run(...params);
+    const result = await query(queryText, params);
 
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Запись не найдена или доступ запрещен' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка обновления данных проб:', error);
+    console.error('Ошибка обновления:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
@@ -126,8 +122,8 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   if (user?.role !== 'sampler' && user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
@@ -139,24 +135,23 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
-    let query = 'DELETE FROM assay_data WHERE id = ?';
+    let queryText = 'DELETE FROM assay_data WHERE id = $1';
     const params = [id];
 
     if (user?.role !== 'admin') {
-      query += ' AND user_id = ?';
+      queryText += ' AND user_id = $2';
       params.push(sessionId);
     }
 
-    const stmt = db.prepare(query);
-    const result = stmt.run(...params);
+    const result = await query(queryText, params);
 
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Запись не найдена или доступ запрещен' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Ошибка удаления данных проб:', error);
+    console.error('Ошибка удаления:', error);
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
 }
