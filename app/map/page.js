@@ -19,6 +19,10 @@ export default function MapPage() {
     layer: 'Скважина',
     holeNumber: '',
     date: '',
+    queue: '1',
+    isDrilled: false,
+    projectCoordinates: '',
+    trueCoordinates: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -49,7 +53,13 @@ export default function MapPage() {
     setError('');
     setSuccess('');
 
-    if (!form.name || !form.coordinates) {
+    // Для скважины главными считаем проектные или истинные координаты
+    const mainCoords =
+      form.type === 'drilling'
+        ? form.trueCoordinates || form.projectCoordinates || form.coordinates
+        : form.coordinates;
+
+    if (!form.name || !mainCoords) {
       setError('Название и координаты обязательны');
       return;
     }
@@ -58,14 +68,25 @@ export default function MapPage() {
       const res = await fetch('/api/map/points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, coordinates: mainCoords }),
         credentials: 'include',
       });
 
       const data = await res.json();
       if (res.ok) {
         setSuccess('Точка добавлена');
-        setForm({ name: '', coordinates: '', type: 'drilling', layer: 'Скважина', holeNumber: '', date: '' });
+        setForm({
+          name: '',
+          coordinates: '',
+          type: 'drilling',
+          layer: 'Скважина',
+          holeNumber: '',
+          date: '',
+          queue: '1',
+          isDrilled: false,
+          projectCoordinates: '',
+          trueCoordinates: '',
+        });
         fetchPoints();
       } else {
         setError(data.error || 'Ошибка добавления');
@@ -78,6 +99,8 @@ export default function MapPage() {
   if (loading) {
     return <div style={{ color: '#d4af37', textAlign: 'center', padding: '2rem' }}>Загрузка...</div>;
   }
+
+  const isDrilling = form.type === 'drilling';
 
   return (
     <div className="container">
@@ -92,13 +115,6 @@ export default function MapPage() {
             placeholder="Название *"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-          <input
-            className="input-gold"
-            placeholder="Координаты (широта, долгота) *"
-            value={form.coordinates}
-            onChange={(e) => setForm({ ...form, coordinates: e.target.value })}
             required
           />
           <select
@@ -130,6 +146,49 @@ export default function MapPage() {
             value={form.date}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
           />
+
+          {/* Для буровой — очередь, проектные/истинные координаты, статус */}
+          {isDrilling ? (
+            <>
+              <select
+                className="input-gold"
+                value={form.queue}
+                onChange={(e) => setForm({ ...form, queue: e.target.value })}
+              >
+                <option value="1">1-я очередь</option>
+                <option value="2">2-я очередь</option>
+                <option value="3">3-я очередь</option>
+              </select>
+              <input
+                className="input-gold"
+                placeholder="Проектные координаты (широта, долгота)"
+                value={form.projectCoordinates}
+                onChange={(e) => setForm({ ...form, projectCoordinates: e.target.value })}
+              />
+              <input
+                className="input-gold"
+                placeholder="Истинные координаты (GPS после бурения)"
+                value={form.trueCoordinates}
+                onChange={(e) => setForm({ ...form, trueCoordinates: e.target.value })}
+              />
+              <label style={{ color: '#d4af37', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={form.isDrilled}
+                  onChange={(e) => setForm({ ...form, isDrilled: e.target.checked })}
+                />
+                Пробурена
+              </label>
+            </>
+          ) : (
+            <input
+              className="input-gold"
+              placeholder="Координаты (широта, долгота) *"
+              value={form.coordinates}
+              onChange={(e) => setForm({ ...form, coordinates: e.target.value })}
+            />
+          )}
+
           <button className="btn-gold" type="submit" style={{ gridColumn: '1 / -1' }}>
             Добавить точку
           </button>
