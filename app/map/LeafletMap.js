@@ -21,12 +21,35 @@ const projections = {
   'ГСК-2011': '+proj=tmerc +lat_0=0 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=GSK2011 +units=m +no_defs',
 };
 
+// Цвета для скважин
+const QUEUE_COLORS = {
+  1: '#2ecc71', // 1-я очередь — зелёный
+  2: '#3498db', // 2-я очередь — синий
+  3: '#f1c40f', // 3-я очередь — жёлтый
+  drilled: '#e74c3c', // пробурена — красный
+  field: '#4a90d9', // полевые точки — голубой
+  default: '#d4af37', // по умолчанию — золотой
+};
+
+// Функция выбора цвета точки
+function getPointColor(point) {
+  // Полевые точки
+  if (point.type !== 'drilling') return QUEUE_COLORS.field;
+  // Пробурена — приоритет (4-й цвет)
+  if (point.is_drilled) return QUEUE_COLORS.drilled;
+  // По очереди
+  if (point.queue === 1) return QUEUE_COLORS[1];
+  if (point.queue === 2) return QUEUE_COLORS[2];
+  if (point.queue === 3) return QUEUE_COLORS[3];
+  return QUEUE_COLORS.default;
+}
+
 export default function LeafletMap({ points }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
+  const markersRef = useRef([]);
   const [selectedCoordSystem, setSelectedCoordSystem] = useState('WGS-84');
   const [activeLayer, setActiveLayer] = useState('all');
-  const [markers, setMarkers] = useState([]);
 
   // Инициализация карты
   useEffect(() => {
@@ -45,28 +68,29 @@ export default function LeafletMap({ points }) {
     };
   }, []);
 
-  // Обновление маркеров при изменении точек, системы координат или слоя
+  // Обновление маркеров
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     // Удаляем старые маркеры
-    markers.forEach(marker => map.removeLayer(marker));
-    setMarkers([]);
+    markersRef.current.forEach((marker) => map.removeLayer(marker));
+    markersRef.current = [];
 
     // Фильтруем точки по слою
     let filteredPoints = points;
     if (activeLayer !== 'all') {
-      filteredPoints = points.filter(p => p.layer === activeLayer);
+      filteredPoints = points.filter((p) => p.layer === activeLayer);
     }
 
     // Добавляем новые маркеры
-    const newMarkers = [];
     filteredPoints.forEach((point) => {
-      // Парсим координаты
-      let coords = point.coordinates?.split(',').map(Number);
+      // Выбираем координаты: истинные → проектные → обычные
+      const coordSource =
+        point.true_coordinates || point.project_coordinates || point.coordinates;
+      let coords = coordSource?.split(',').map(Number);
+
       if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-        // Если координаты в WGS-84, преобразуем в выбранную систему
         let lat = coords[0];
         let lng = coords[1];
 
@@ -83,30 +107,39 @@ export default function LeafletMap({ points }) {
 
         const marker = L.marker([lat, lng]).addTo(map);
 
-        // Цвет маркера в зависимости от типа
-        const color = point.type === 'drilling' ? '#d4af37' : '#4a90d9';
+        // Цвет маркера по очереди/статусу
+        const color = getPointColor(point);
         marker.setIcon(
           L.divIcon({
             className: 'custom-marker',
-            html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-            iconSize: [12, 12],
-            iconAnchor: [6, 6],
+            html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
           })
         );
+
+        // Текст статуса для попапа
+        let statusText = '';
+        if (point.type === 'drilling') {
+          if (point.is_drilled) {
+            statusText = 'Пробурена ✅';
+          } else if (point.queue) {
+            statusText = `${point.queue}-я очередь`;
+          }
+        }
 
         marker.bindPopup(`
           <b>${point.name || 'Без названия'}</b><br>
           Скважина: ${point.hole_number || '—'}<br>
           Дата: ${point.date || '—'}<br>
           Тип: ${point.layer || '—'}<br>
+          ${statusText ? `Статус: ${statusText}<br>` : ''}
           Координаты (${selectedCoordSystem}): ${lat.toFixed(6)}, ${lng.toFixed(6)}
         `);
 
-        newMarkers.push(marker);
+        markersRef.current.push(marker);
       }
     });
-
-    setMarkers(newMarkers);
   }, [points, selectedCoordSystem, activeLayer]);
 
   return (
@@ -157,7 +190,44 @@ export default function LeafletMap({ points }) {
         </div>
       </div>
 
+      {/* Легенда цветов */}
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        right: '10px',
+        zIndex: 1000,
+        background: 'rgba(26, 26, 26, 0.9)',
+        padding: '0.8rem',
+        borderRadius: '8px',
+        border: '1px solid #d4af37',
+        fontSize: '0.75rem',
+        color: '#fff',
+      }}>
+        <div style={{ color: '#d4af37', marginBottom: '0.4rem', fontWeight: 'bold' }}>Очередь бурения</div>
+        <LegendItem color={QUEUE_COLORS[1]} label="1-я очередь" />
+        <LegendItem color={QUEUE_COLORS[2]} label="2-я очередь" />
+        <LegendItem color={QUEUE_COLORS[3]} label="3-я очередь" />
+        <LegendItem color={QUEUE_COLORS.drilled} label="Пробурена" />
+        <LegendItem color={QUEUE_COLORS.field} label="Полевые" />
+      </div>
+
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+    </div>
+  );
+}
+
+// Элемент легенды
+function LegendItem({ color, label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+      <div style={{
+        width: '12px',
+        height: '12px',
+        borderRadius: '50%',
+        backgroundColor: color,
+        border: '2px solid white',
+      }} />
+      <span>{label}</span>
     </div>
   );
 }
