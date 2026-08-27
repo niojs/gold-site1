@@ -11,18 +11,24 @@ export async function GET() {
   }
 
   try {
-    // Получаем точки из drilling_records
+    // Получаем точки из drilling_records (с новыми полями)
     const drillingResult = await query(`
       SELECT 
         id,
         site as name,
         hole_number,
         coordinates,
+        project_coordinates,
+        true_coordinates,
+        queue,
+        is_drilled,
         date,
         'drilling' as type,
         'Скважина' as layer
       FROM drilling_records
       WHERE coordinates IS NOT NULL AND coordinates != ''
+         OR project_coordinates IS NOT NULL AND project_coordinates != ''
+         OR true_coordinates IS NOT NULL AND true_coordinates != ''
     `);
 
     // Получаем точки из field_data
@@ -57,9 +63,23 @@ export async function POST(request) {
   }
 
   try {
-    const { name, coordinates, type, layer, holeNumber, date } = await request.json();
+    const {
+      name,
+      coordinates,
+      type,
+      layer,
+      holeNumber,
+      date,
+      queue,
+      isDrilled,
+      projectCoordinates,
+      trueCoordinates,
+    } = await request.json();
 
-    if (!name || !coordinates) {
+    // Для скважины координаты могут прийти как проектные/истинные
+    const mainCoords = coordinates || trueCoordinates || projectCoordinates || '';
+
+    if (!name || !mainCoords) {
       return NextResponse.json({ error: 'Название и координаты обязательны' }, { status: 400 });
     }
 
@@ -70,13 +90,26 @@ export async function POST(request) {
       await query(
         `INSERT INTO field_data (id, site, coordinates, hole_number, date, user_id, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [id, name, coordinates, holeNumber || '', date || '', sessionId, created_at]
+        [id, name, mainCoords, holeNumber || '', date || '', sessionId, created_at]
       );
     } else {
       await query(
-        `INSERT INTO drilling_records (id, site, coordinates, hole_number, date, user_id, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [id, name, coordinates, holeNumber || '', date || '', sessionId, created_at]
+        `INSERT INTO drilling_records 
+          (id, site, coordinates, project_coordinates, true_coordinates, queue, is_drilled, hole_number, date, user_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          id,
+          name,
+          mainCoords,
+          projectCoordinates || '',
+          trueCoordinates || '',
+          queue ? parseInt(queue) : null,
+          isDrilled === true || isDrilled === 'true',
+          holeNumber || '',
+          date || '',
+          sessionId,
+          created_at,
+        ]
       );
     }
 
