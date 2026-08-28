@@ -27,20 +27,17 @@ export default function Navigation() {
   const getMenuItems = () => {
     const roleSpecific = {
       admin: [
-        { href: '/dashboard', label: '📊 Дашборд' },
         { href: '/admin/users', label: '👥 Пользователи' },
         { href: '/table', label: '📋 Все данные' },
         { href: '/map', label: '🗺️ Карта' },
         { href: '/import-export', label: '📤 Импорт/Экспорт' },
       ],
       chief_geologist: [
-        { href: '/dashboard', label: '📊 Дашборд' },
         { href: '/table', label: '📋 Все рабочие данные' },
         { href: '/map', label: '🗺️ Карта' },
         { href: '/import-export', label: '📤 Импорт/Экспорт' },
       ],
       field_geologist: [
-        { href: '/dashboard', label: '📊 Дашборд' },
         { href: '/field-data', label: '📝 Полевые данные' },
         { href: '/map', label: '🗺️ Карта' },
       ],
