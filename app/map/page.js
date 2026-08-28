@@ -17,6 +17,10 @@ const emptyForm = {
   layer: 'Скважина',
   holeNumber: '',
   date: '',
+  site: '',
+  diameter: '',
+  startTime: '',
+  endTime: '',
   queue: '1',
   isDrilled: false,
   projectCoordinates: '',
@@ -57,7 +61,6 @@ export default function MapPage() {
     fetchPoints();
   }, []);
 
-  // Открыть модалку для добавления
   const openAddModal = () => {
     setForm(emptyForm);
     setError('');
@@ -65,7 +68,6 @@ export default function MapPage() {
     setModalOpen(true);
   };
 
-  // Открыть модалку для редактирования (вызывается из карты)
   const openEditModal = (point) => {
     setForm({
       id: point.id,
@@ -75,6 +77,10 @@ export default function MapPage() {
       layer: point.layer || 'Скважина',
       holeNumber: point.hole_number || '',
       date: point.date || '',
+      site: point.site || '',
+      diameter: point.diameter ? String(point.diameter) : '',
+      startTime: point.start_time || '',
+      endTime: point.end_time || '',
       queue: point.queue ? String(point.queue) : '1',
       isDrilled: !!point.is_drilled,
       projectCoordinates: point.project_coordinates || '',
@@ -85,7 +91,6 @@ export default function MapPage() {
     setModalOpen(true);
   };
 
-  // Удаление точки (вызывается из карты)
   const handleDelete = async (point) => {
     if (!confirm(`Удалить точку "${point.name}"?`)) return;
     try {
@@ -152,7 +157,6 @@ export default function MapPage() {
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* Заголовок + кнопка */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem',
@@ -165,7 +169,6 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Карта на весь экран */}
       <div style={{
         height: '75vh', borderRadius: '16px', overflow: 'hidden',
         border: '1px solid #d4af37', boxShadow: '0 8px 32px rgba(212,175,55,0.15)',
@@ -178,7 +181,6 @@ export default function MapPage() {
         />
       </div>
 
-      {/* Модальное окно */}
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
@@ -225,6 +227,49 @@ export default function MapPage() {
 
               {isDrilling ? (
                 <>
+                  <div className="field-row">
+                    <div style={{ flex: 1 }}>
+                      <label className="field-label">Участок работ</label>
+                      <input
+                        className="input-gold"
+                        placeholder="Участок"
+                        value={form.site}
+                        onChange={(e) => setForm({ ...form, site: e.target.value })}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label className="field-label">Диаметр (мм)</label>
+                      <input
+                        className="input-gold"
+                        type="number"
+                        placeholder="мм"
+                        value={form.diameter}
+                        onChange={(e) => setForm({ ...form, diameter: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="field-row">
+                    <div style={{ flex: 1 }}>
+                      <label className="field-label">Начало бурения</label>
+                      <input
+                        className="input-gold"
+                        type="time"
+                        value={form.startTime}
+                        onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label className="field-label">Конец бурения</label>
+                      <input
+                        className="input-gold"
+                        type="time"
+                        value={form.endTime}
+                        onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <label className="field-label">Очередь бурения</label>
                   <select
                     className="input-gold"
@@ -384,6 +429,11 @@ export default function MapPage() {
           cursor: pointer;
           font-size: 0.95rem;
         }
+        .checkbox-label input {
+          width: 20px;
+          height: 20px;
+          accent-color: #d4af37;
+          cursor: pointer;
         .checkbox-label input {
           width: 20px;
           height: 20px;
