@@ -48,7 +48,12 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = L.map(mapContainerRef.current).setView([55.75, 60.0], 10);
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: false,
+    }).setView([55.75, 60.0], 10);
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
@@ -232,16 +237,16 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           top: 12px;
           left: 12px;
           z-index: 1000;
-          background: rgba(20,20,20,0.92);
-          padding: 0.9rem;
-          border-radius: 12px;
-          border: 1px solid #d4af37;
+          background: rgba(13,13,13,0.85);
+          padding: 0.7rem;
+          border-radius: 10px;
+          border: 1px solid rgba(212,175,55,0.4);
           display: flex;
           flex-direction: column;
-          gap: 0.6rem;
-          min-width: 150px;
-          backdrop-filter: blur(6px);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+          gap: 0.5rem;
+          min-width: 140px;
+          backdrop-filter: blur(8px);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
         .map-control label {
           color: #d4af37;
@@ -270,19 +275,39 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           bottom: 24px;
           right: 12px;
           z-index: 1000;
-          background: rgba(20,20,20,0.92);
-          padding: 0.8rem 1rem;
-          border-radius: 12px;
-          border: 1px solid #d4af37;
+          background: rgba(13,13,13,0.85);
+          padding: 0.7rem 0.9rem;
+          border-radius: 10px;
+          border: 1px solid rgba(212,175,55,0.4);
           font-size: 0.75rem;
           color: #fff;
-          backdrop-filter: blur(6px);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
         .legend-title {
           color: #d4af37;
           margin-bottom: 0.5rem;
           font-weight: bold;
+        }
+
+        /* Кнопки зума в нашем стиле */
+        .leaflet-control-zoom {
+          border: 1px solid rgba(212,175,55,0.4) !important;
+          border-radius: 10px !important;
+          overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+        }
+        .leaflet-control-zoom a {
+          background: rgba(13,13,13,0.85) !important;
+          color: #d4af37 !important;
+          border: none !important;
+          backdrop-filter: blur(8px);
+          font-size: 1.2rem !important;
+          font-weight: bold;
+        }
+        .leaflet-control-zoom a:hover {
+          background: #d4af37 !important;
+          color: #0d0d0d !important;
         }
 
         /* Попап */
