@@ -7,6 +7,8 @@ export default function AllDataPage() {
   const [data, setData] = useState({ drilling: [], field: [], washing: [], assay: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState(null);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -102,15 +104,15 @@ export default function AllDataPage() {
     ],
   };
 
-  const sectionTitles = {
-    drilling: 'Буровые работы',
-    field: 'Полевые данные',
-    washing: 'Отдел промывки',
-    assay: 'Отдел проб',
+  const typeMeta = {
+    drilling: { label: 'Буровые работы', color: '#5b9bd5' },
+    field: { label: 'Полевые данные', color: '#70ad47' },
+    washing: { label: 'Отдел промывки', color: '#4dd0c4' },
+    assay: { label: 'Отдел проб', color: '#d67ab1' },
   };
 
-  const renderCard = (type, rec) => {
-    const rows = {
+  const cellRows = (type, rec) => {
+    const map = {
       drilling: [
         ['Участок', rec.site],
         ['Дата', fmtDate(rec.date)],
@@ -142,60 +144,138 @@ export default function AllDataPage() {
         ['Вес пробы', rec.sample_weight],
       ],
     };
-
-    return (
-      <div className="record" key={rec.id}>
-        <div className="record-head">
-          <span className="record-hole">Скважина {rec.hole_number}</span>
-          <div className="record-actions">
-            <button className="edit-btn" onClick={() => setEditing({ type, record: { ...rec } })}>
-              Изменить
-            </button>
-            <button className="del-btn" onClick={() => handleDelete(type, rec.id)}>
-              Удалить
-            </button>
-          </div>
-        </div>
-        <div className="record-grid">
-          {rows[type].map(([label, val]) => (
-            <div className="cell" key={label}>
-              <span className="cell-label">{label}</span>
-              <span className="cell-value">{val ?? '—'}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return map[type];
   };
+
+  // ===== ГРУППИРОВКА ПО СКВАЖИНЕ =====
+  const buildGroups = () => {
+    const groups = {};
+    ['drilling', 'field', 'washing', 'assay'].forEach((type) => {
+      data[type].forEach((rec) => {
+        const hole = rec.hole_number || 'Без номера';
+        if (!groups[hole]) groups[hole] = { drilling: [], field: [], washing: [], assay: [] };
+        groups[hole][type].push(rec);
+      });
+    });
+    return groups;
+  };
+
+  const groups = buildGroups();
+  const holeNumbers = Object.keys(groups)
+    .filter((h) => h.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  const totalRecords =
+    data.drilling.length + data.field.length + data.washing.length + data.assay.length;
 
   if (loading) return <div className="state-msg">Загрузка...</div>;
 
   return (
     <div className="all-data-page">
-      <h1 className="page-title">Все данные</h1>
+      <div className="header">
+        <h1 className="page-title">Все данные</h1>
+        <span className="total-badge">{totalRecords} записей · {holeNumbers.length} скважин</span>
+      </div>
 
       {error && <div className="error-box">{error}</div>}
 
-      {['drilling', 'field', 'washing', 'assay'].map((type) => (
-        <div className="card" key={type}>
-          <div className="card-head">
-            <h2 className="card-title">{sectionTitles[type]}</h2>
-            <span className="count">{data[type].length}</span>
-          </div>
-          {data[type].length === 0 ? (
-            <p className="empty">Нет записей</p>
-          ) : (
-            <div className="records-list">
-              {data[type].map((rec) => renderCard(type, rec))}
-            </div>
-          )}
+      <input
+        className="search"
+        placeholder="Поиск по номеру скважины..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {holeNumbers.length === 0 ? (
+        <p className="empty-all">Нет данных</p>
+      ) : (
+        <div className="groups">
+          {holeNumbers.map((hole) => {
+            const g = groups[hole];
+            const count =
+              g.drilling.length + g.field.length + g.washing.length + g.assay.length;
+            const isOpen = expanded === hole;
+
+            return (
+              <div className={`group ${isOpen ? 'open' : ''}`} key={hole}>
+                <button className="group-head" onClick={() => setExpanded(isOpen ? null : hole)}>
+                  <div className="group-left">
+                    <span className="group-hole">Скважина {hole}</span>
+                    <div className="group-tags">
+                      {['drilling', 'field', 'washing', 'assay'].map((t) =>
+                        g[t].length > 0 ? (
+                          <span
+                            key={t}
+                            className="tag"
+                            style={{ background: `${typeMeta[t].color}22`, color: typeMeta[t].color }}
+                          >
+                            {typeMeta[t].label.split(' ')[0]} {g[t].length}
+                          </span>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                  <span className="arrow">{isOpen ? '−' : '+'}</span>
+                </button>
+
+                {isOpen && (
+                  <div className="group-body">
+                    {['drilling', 'field', 'washing', 'assay'].map((type) =>
+                      g[type].length > 0 ? (
+                        <div className="section" key={type}>
+                          <div
+                            className="section-title"
+                            style={{ color: typeMeta[type].color }}
+                          >
+                            <span
+                              className="dot"
+                              style={{ background: typeMeta[type].color }}
+                            />
+                            {typeMeta[type].label}
+                          </div>
+                          {g[type].map((rec) => (
+                            <div className="record" key={rec.id}>
+                              <div className="record-grid">
+                                {cellRows(type, rec).map(([label, val]) => (
+                                  <div className="cell" key={label}>
+                                    <span className="cell-label">{label}</span>
+                                    <span className="cell-value">{val ?? '—'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="record-actions">
+                                <button
+                                  className="edit-btn"
+                                  onClick={() => setEditing({ type, record: { ...rec } })}
+                                >
+                                  Изменить
+                                </button>
+                                <button
+                                  className="del-btn"
+                                  onClick={() => handleDelete(type, rec.id)}
+                                >
+                                  Удалить
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      ))}
+      )}
 
       {editing && (
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Редактирование — {sectionTitles[editing.type]}</h2>
+            <h2 className="modal-title">
+              Редактирование — {typeMeta[editing.type].label}
+            </h2>
             <form onSubmit={handleSave} className="modal-form">
               {fieldConfig[editing.type].map((f) => (
                 <div className="field" key={f.key}>
@@ -212,7 +292,11 @@ export default function AllDataPage() {
                 <button className="btn-primary" type="submit" disabled={saving}>
                   {saving ? 'Сохранение...' : 'Сохранить'}
                 </button>
-                <button className="btn-secondary" type="button" onClick={() => setEditing(null)}>
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  onClick={() => setEditing(null)}
+                >
                   Отмена
                 </button>
               </div>
@@ -227,11 +311,25 @@ export default function AllDataPage() {
           margin: 0 auto;
           padding: 1.5rem;
         }
+        .header {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          flex-wrap: wrap;
+          margin-bottom: 1.4rem;
+        }
         .page-title {
           color: #d4af37;
           font-size: 1.7rem;
           font-weight: 600;
-          margin-bottom: 1.8rem;
+        }
+        .total-badge {
+          background: rgba(212, 175, 55, 0.15);
+          color: #d4af37;
+          font-size: 0.8rem;
+          font-weight: 600;
+          padding: 0.25rem 0.7rem;
+          border-radius: 20px;
         }
         .state-msg {
           text-align: center;
@@ -239,65 +337,143 @@ export default function AllDataPage() {
           color: #d4af37;
         }
 
-        .card {
+        .search {
+          width: 100%;
+          background: rgba(10, 10, 10, 0.5);
+          border: 1px solid rgba(212, 175, 55, 0.25);
+          border-radius: 12px;
+          padding: 0.9rem 1.1rem;
+          color: #e0dcc8;
+          font-size: 0.95rem;
+          margin-bottom: 1.5rem;
+        }
+        .search:focus {
+          outline: none;
+          border-color: #d4af37;
+          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .empty-all {
+          color: #8a7e6a;
+          text-align: center;
+          padding: 2rem;
+        }
+
+        .groups {
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+        }
+
+        .group {
           background: rgba(20, 18, 15, 0.5);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(212, 175, 55, 0.22);
-          border-radius: 16px;
-          padding: 1.4rem;
-          margin-bottom: 1.5rem;
+          border: 1px solid rgba(212, 175, 55, 0.2);
+          border-radius: 14px;
+          overflow: hidden;
+          transition: border-color 0.2s;
         }
-        .card-head {
+        .group.open {
+          border-color: rgba(212, 175, 55, 0.45);
+        }
+        .group-head {
+          width: 100%;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 1.1rem 1.2rem;
           display: flex;
+          justify-content: space-between;
           align-items: center;
-          gap: 0.7rem;
-          margin-bottom: 1.2rem;
+          gap: 0.8rem;
+          text-align: left;
         }
-        .card-title {
-          color: #d4af37;
-          font-size: 1.15rem;
-          font-weight: 600;
-        }
-        .count {
-          background: rgba(212, 175, 55, 0.15);
-          color: #d4af37;
-          font-size: 0.8rem;
-          font-weight: 600;
-          padding: 0.15rem 0.6rem;
-          border-radius: 20px;
-        }
-        .empty {
-          color: #8a7e6a;
-          text-align: center;
-          padding: 1rem 0;
-        }
-
-        .records-list {
+        .group-left {
           display: flex;
           flex-direction: column;
-          gap: 0.9rem;
+          gap: 0.5rem;
+          min-width: 0;
         }
+        .group-hole {
+          color: #d4af37;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+        .group-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+        }
+        .tag {
+          font-size: 0.72rem;
+          font-weight: 600;
+          padding: 0.15rem 0.55rem;
+          border-radius: 20px;
+        }
+        .arrow {
+          color: #d4af37;
+          font-size: 1.5rem;
+          font-weight: 300;
+          flex-shrink: 0;
+          width: 24px;
+          text-align: center;
+        }
+
+        .group-body {
+          padding: 0 1.2rem 1.2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.3rem;
+        }
+        .section-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin-bottom: 0.7rem;
+        }
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
         .record {
           background: rgba(10, 10, 10, 0.4);
           border: 1px solid rgba(255, 255, 255, 0.06);
           border-radius: 12px;
           padding: 1rem 1.1rem;
+          margin-bottom: 0.7rem;
         }
-        .record-head {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 0.5rem;
+        .record:last-child {
+          margin-bottom: 0;
+        }
+        .record-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.7rem 1rem;
           margin-bottom: 0.9rem;
-          padding-bottom: 0.7rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
-        .record-hole {
-          color: #d4af37;
-          font-size: 1.05rem;
-          font-weight: 600;
+          .cell {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+          min-width: 0;
         }
+        .cell-label {
+          color: #8a7e6a;
+          font-size: 0.72rem;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .cell-value {
+          color: #e0dcc8;
+          font-size: 0.92rem;
+          word-break: break-word;
+        }
+
         .record-actions {
           display: flex;
           gap: 0.4rem;
@@ -326,29 +502,6 @@ export default function AllDataPage() {
           background: rgba(207, 107, 94, 0.12);
         }
 
-        .record-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.7rem 1rem;
-        }
-        .cell {
-          display: flex;
-          flex-direction: column;
-          gap: 0.15rem;
-          min-width: 0;
-        }
-        .cell-label {
-          color: #8a7e6a;
-          font-size: 0.72rem;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-        .cell-value {
-          color: #e0dcc8;
-          font-size: 0.92rem;
-          word-break: break-word;
-        }
-
         .error-box {
           background: rgba(207, 107, 94, 0.12);
           border: 1px solid rgba(207, 107, 94, 0.4);
@@ -369,7 +522,7 @@ export default function AllDataPage() {
           padding: 1rem;
           z-index: 2000;
         }
-          .modal {
+        .modal {
           background: #14120f;
           border: 1px solid rgba(212, 175, 55, 0.3);
           border-radius: 16px;
