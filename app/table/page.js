@@ -74,6 +74,9 @@ export default function AllDataPage() {
       { key: 'diameter', label: 'Диаметр (мм)', type: 'number' },
       { key: 'start_time', label: 'Начало', type: 'time' },
       { key: 'end_time', label: 'Конец', type: 'time' },
+      { key: 'coordinates', label: 'Координаты', type: 'text' },
+      { key: 'project_coordinates', label: 'Проектные координаты', type: 'text' },
+      { key: 'true_coordinates', label: 'Фактические координаты', type: 'text' },
     ],
     field: [
       { key: 'hole_number', label: 'Скважина', type: 'text' },
@@ -119,6 +122,9 @@ export default function AllDataPage() {
         ['Диаметр', rec.diameter ? `${rec.diameter} мм` : '—'],
         ['Начало', rec.start_time || '—'],
         ['Конец', rec.end_time || '—'],
+        ['Координаты', rec.coordinates || '—'],
+        ['Проектные', rec.project_coordinates || '—'],
+        ['Фактические', rec.true_coordinates || '—'],
       ],
       field: [
         ['Координаты', rec.coordinates],
@@ -304,7 +310,6 @@ export default function AllDataPage() {
           </div>
         </div>
       )}
-
       <style jsx>{`
         .all-data-page {
           max-width: 820px;
@@ -456,7 +461,7 @@ export default function AllDataPage() {
           gap: 0.7rem 1rem;
           margin-bottom: 0.9rem;
         }
-          .cell {
+        .cell {
           display: flex;
           flex-direction: column;
           gap: 0.15rem;
