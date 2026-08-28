@@ -260,3 +260,22 @@ body::after {
   0%   { transform: translate(0, 0); }
   100% { transform: translate(60px, 60px); }
 }
+/* ===== Ссылки — убрать дефолтное подчёркивание браузера ===== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Лого — гарантированно чистое */
+.logo-link,
+.logo-link:link,
+.logo-link:visited,
+.logo-link:hover,
+.logo-link:active {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+.logo-text {
+  color: #d4af37 !important;
+  text-decoration: none !important;
+}
