@@ -208,3 +208,55 @@ body {
     padding: 1.5rem;
   }
 }
+/* ===== Анимированный фон ===== */
+body {
+  background: #0a0a0a;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(212,175,55,0.12), transparent 40%),
+    radial-gradient(circle at 80% 60%, rgba(212,175,55,0.08), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(166,124,107,0.10), transparent 40%);
+  animation: bgFloat 18s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 60px,
+      rgba(212,175,55,0.015) 60px,
+      rgba(212,175,55,0.015) 61px
+    );
+  animation: bgMove 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bgFloat {
+  0%   { transform: scale(1) translate(0, 0); }
+  50%  { transform: scale(1.1) translate(2%, -2%); }
+  100% { transform: scale(1) translate(-2%, 2%); }
+}
+
+@keyframes bgMove {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(60px, 60px); }
+}
