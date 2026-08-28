@@ -16,7 +16,7 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const table = searchParams.get('table');
-  const format = searchParams.get('format') || 'xlsx'; // xlsx или csv
+  const format = searchParams.get('format') || 'xlsx';
 
   const tables = {
     drilling: { name: 'drilling_records', label: 'Буровые работы' },
@@ -25,18 +25,80 @@ export async function GET(request) {
     assay: { name: 'assay_data', label: 'Пробы' },
   };
 
+  // ===== РУССКИЕ НАЗВАНИЯ КОЛОНОК =====
+  const COLUMN_LABELS = {
+    drilling: {
+      hole_number: 'Скважина',
+      site: 'Участок',
+      date: 'Дата',
+      diameter: 'Диаметр (мм)',
+      start_time: 'Начало',
+      end_time: 'Конец',
+    },
+    field: {
+      hole_number: 'Скважина',
+      coordinates: 'Координаты',
+      site: 'Участок',
+      line_height: 'Линия/высота',
+      intervals: 'Интервалы',
+      geological_description: 'Геологическое описание',
+      ugv: 'УГВ (м)',
+      date: 'Дата',
+      time: 'Время',
+      diameter: 'Диаметр (мм)',
+      core_recovery: 'Выход керна (%)',
+    },
+    washing: {
+      hole_number: 'Скважина',
+      interval: 'Интервал',
+      mass: 'Масса',
+      volume: 'Объём',
+      visual_description: 'Визуальное описание',
+    },
+    assay: {
+      hole_number: 'Скважина',
+      interval: 'Интервал',
+      reserves: 'Запасы (т)',
+      marks: 'Отметки',
+      sample_weight: 'Вес пробы (кг)',
+    },
+  };
+
+  // Превращает сырые строки из базы в строки с русскими заголовками
+  const translateRows = (tableKey, rows) => {
+    const labels = COLUMN_LABELS[tableKey];
+    return rows.map((row) => {
+      const newRow = {};
+      for (const key in labels) {
+        let val = row[key];
+        if (key === 'date' && val) {
+          val = new Date(val).toLocaleDateString('ru-RU');
+        }
+        newRow[labels[key]] = val ?? '';
+      }
+      return newRow;
+    });
+  };
+
   try {
     // ===== СОБИРАЕМ ДАННЫЕ =====
-    let sheets = []; // [{ label, data }]
+    let sheets = []; // [{ key, label, data }]
 
     if (table && tables[table]) {
       const result = await query(`SELECT * FROM ${tables[table].name}`);
-      sheets.push({ label: tables[table].label, data: result.rows });
+      sheets.push({
+        key: table,
+        label: tables[table].label,
+        data: translateRows(table, result.rows),
+      });
     } else {
-      // Все таблицы
       for (const key of Object.keys(tables)) {
         const result = await query(`SELECT * FROM ${tables[key].name}`);
-        sheets.push({ label: tables[key].label, data: result.rows });
+        sheets.push({
+          key,
+          label: tables[key].label,
+          data: translateRows(key, result.rows),
+        });
       }
     }
 
@@ -45,31 +107,42 @@ export async function GET(request) {
       return new Response('Нет данных для экспорта', { status: 404 });
     }
 
-    const fileName = table ? table : 'all_data';
+    const fileName = table ? tables[table].label : 'Все данные';
 
     // ===== ФОРМАТ CSV =====
     if (format === 'csv') {
-      // CSV — только первая таблица (или объединённая)
-      const allData = sheets.flatMap((s) => s.data);
-      if (allData.length === 0) return new Response('Нет данных', { status: 404 });
+      let csvContent = '';
 
-      const headers = Object.keys(allData[0]);
-      const csvRows = [headers.join(';')];
-      for (const row of allData) {
-        const values = headers.map((h) => {
-          let value = row[h] !== undefined && row[h] !== null ? String(row[h]) : '';
-          if (value.includes('"') || value.includes(';') || value.includes('\n')) {
-            value = `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        });
-        csvRows.push(values.join(';'));
+      for (const sheet of sheets) {
+        if (sheet.data.length === 0) continue;
+
+        // Заголовок секции (если экспортируем несколько таблиц)
+        if (!table) {
+          csvContent += `${sheet.label}\n`;
+        }
+
+        const headers = Object.keys(sheet.data[0]);
+        csvContent += headers.join(';') + '\n';
+
+        for (const row of sheet.data) {
+          const values = headers.map((h) => {
+            let value = row[h] !== undefined && row[h] !== null ? String(row[h]) : '';
+            if (value.includes('"') || value.includes(';') || value.includes('\n')) {
+              value = `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          });
+          csvContent += values.join(';') + '\n';
+        }
+
+        csvContent += '\n'; // пустая строка между таблицами
       }
-      const finalContent = '\uFEFF' + csvRows.join('\n');
+
+      const finalContent = '\uFEFF' + csvContent;
       return new Response(finalContent, {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${fileName}_export.csv"`,
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}.csv"`,
         },
       });
     }
@@ -91,7 +164,6 @@ export async function GET(request) {
       });
       worksheet['!cols'] = cols;
 
-      // Имя листа (макс 31 символ — ограничение Excel)
       const sheetName = sheet.label.substring(0, 31);
       XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
     }
@@ -101,7 +173,7 @@ export async function GET(request) {
     return new Response(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${fileName}_export.xlsx"`,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}.xlsx"`,
       },
     });
   } catch (error) {
