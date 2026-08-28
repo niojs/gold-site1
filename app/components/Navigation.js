@@ -49,7 +49,6 @@ export default function Navigation() {
         { href: '/map', label: '🗺️ Карта' },
       ],
       driller: [
-        { href: '/drilling', label: '🔧 Буровые работы' },
         { href: '/map', label: '🗺️ Карта' },
       ],
       washer: [
@@ -111,7 +110,7 @@ export default function Navigation() {
         alignItems: 'center',
       }} className="menu-links">
         {menuItems.map((item) => (
-          <Link key={item.href} href={item.href}>
+          <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
             <span style={{
               color: pathname === item.href ? '#d4af37' : '#cccccc',
               fontWeight: pathname === item.href ? 'bold' : 'normal',
