@@ -59,7 +59,7 @@ export async function POST(request) {
         redirectUrl = '/field-data';
         break;
       case 'driller':
-        redirectUrl = '/drilling';
+        redirectUrl = '/map';
         break;
       case 'washer':
         redirectUrl = '/washing';
