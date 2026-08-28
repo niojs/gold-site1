@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
 import * as XLSX from 'xlsx';
 
-// Столбцы каждой таблицы (защита от лишних полей)
 const TABLE_COLUMNS = {
   drilling_records: ['id', 'user_id', 'site', 'date', 'hole_number', 'diameter', 'start_time', 'end_time', 'coordinates', 'created_at', 'queue', 'is_drilled', 'project_coordinates', 'true_coordinates'],
   field_data: ['id', 'user_id', 'hole_number', 'coordinates', 'line_height', 'intervals', 'geological_description', 'ugv', 'date', 'time', 'site', 'diameter', 'core_recovery', 'created_at'],
@@ -11,7 +10,14 @@ const TABLE_COLUMNS = {
   assay_data: ['id', 'user_id', 'hole_number', 'interval', 'reserves', 'marks', 'sample_weight', 'created_at'],
 };
 
-// ===== ОБРАТНЫЙ ПЕРЕВОД: русский заголовок -> английский столбец =====
+// Ключ уникальности: по каким полям считаем запись "той же самой"
+const UNIQUE_KEYS = {
+  drilling_records: ['hole_number'],
+  field_data: ['hole_number', 'intervals'],
+  washing_data: ['hole_number', 'interval'],
+  assay_data: ['hole_number', 'interval'],
+};
+
 const RU_TO_EN = {
   'Скважина': 'hole_number',
   'Участок': 'site',
@@ -39,14 +45,11 @@ const RU_TO_EN = {
   'Вес пробы (кг)': 'sample_weight',
 };
 
-// Переводит заголовок (русский ИЛИ английский) в английский столбец
 function normalizeHeader(header) {
   const h = header.trim();
-  if (RU_TO_EN[h]) return RU_TO_EN[h];
-  return h; // уже английский
+  return RU_TO_EN[h] || h;
 }
 
-// Определяем таблицу по (уже английским) заголовкам
 function detectTable(headers) {
   if (headers.includes('diameter') && (headers.includes('start_time') || headers.includes('queue'))) return 'drilling_records';
   if (headers.includes('ugv') || headers.includes('geological_description') || headers.includes('core_recovery')) return 'field_data';
@@ -56,7 +59,6 @@ function detectTable(headers) {
   return null;
 }
 
-// Преобразует дату ДД.ММ.ГГГГ -> ISO (или оставляет как есть)
 function normalizeDate(val) {
   if (!val) return val;
   const s = String(val).trim();
@@ -66,6 +68,11 @@ function normalizeDate(val) {
     return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
   return s;
+}
+
+// Проверка: значение "пустое"?
+function isEmpty(v) {
+  return v === '' || v === null || v === undefined;
 }
 
 export async function POST(request) {
@@ -118,12 +125,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Нет данных в файле' }, { status: 400 });
     }
 
-    // ===== ПЕРЕВОДИМ ЗАГОЛОВКИ В АНГЛИЙСКИЕ =====
+    // ===== ПЕРЕВОДИМ ЗАГОЛОВКИ =====
     const rows = rawRows.map((rawRow) => {
       const row = {};
       for (const key of Object.keys(rawRow)) {
-        const enKey = normalizeHeader(key);
-        row[enKey] = rawRow[key];
+        row[normalizeHeader(key)] = rawRow[key];
       }
       return row;
     });
@@ -138,58 +144,108 @@ export async function POST(request) {
     }
 
     const validColumns = TABLE_COLUMNS[tableName];
-    let insertedCount = 0;
-    let skippedCount = 0;
+    const uniqueKeys = UNIQUE_KEYS[tableName];
+
+    let insertedCount = 0;  // новые записи
+    let mergedCount = 0;    // дозаполнены
+    let skippedCount = 0;   // пустые
     let errorCount = 0;
 
-    // ===== ВСТАВКА =====
+    // ===== ОБРАБОТКА КАЖДОЙ СТРОКИ =====
     for (const rawRow of rows) {
+      // чистим и конвертируем
       const row = {};
       for (const key of Object.keys(rawRow)) {
         const col = key.trim();
         if (validColumns.includes(col)) {
           let value = rawRow[key];
-
-          // конвертация спец-полей
           if (col === 'is_drilled') {
             const v = String(value).trim().toLowerCase();
-            value = (v === 'да' || v === 'true' || v === '1') ? true : false;
+            value = (v === 'да' || v === 'true' || v === '1');
           } else if (col === 'date') {
             value = normalizeDate(value);
           }
-
-          if (value !== '' && value !== null && value !== undefined) {
-            row[col] = value;
-          }
+          row[col] = value;
         }
       }
 
-      // Пропускаем строки без номера скважины (мусор/пустые строки)
-      if (!row.hole_number) {
+      // пропускаем строки без скважины
+      if (isEmpty(row.hole_number)) {
         skippedCount++;
         continue;
       }
 
-      // авто-поля
-      if (!row.id) row.id = Date.now().toString() + Math.floor(Math.random() * 1000);
-      if (!row.user_id) row.user_id = sessionId;
-      if (!row.created_at) row.created_at = new Date().toISOString();
+      // ===== ИЩЕМ СУЩЕСТВУЮЩУЮ ЗАПИСЬ (по ключу уникальности) =====
+      const whereClauses = [];
+      const whereValues = [];
+      uniqueKeys.forEach((k, i) => {
+        whereClauses.push(`${k} = $${i + 1}`);
+        whereValues.push(row[k] ?? '');
+      });
 
-      const cols = Object.keys(row);
-      if (cols.length === 0) continue;
+      const existing = await query(
+        `SELECT * FROM ${tableName} WHERE ${whereClauses.join(' AND ')} LIMIT 1`,
+        whereValues
+      );
 
-      const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
-      const values = cols.map((c) => row[c]);
+      if (existing.rows.length > 0) {
+        // ===== ДУБЛЬ НАЙДЕН → ДОЗАПОЛНЯЕМ ПУСТЫЕ =====
+        const dbRow = existing.rows[0];
+        const updates = [];
+        const updateValues = [];
+        let idx = 1;
 
-      try {
-        await query(
-          `INSERT INTO ${tableName} (${cols.join(', ')}) VALUES (${placeholders})`,
-          values
-        );
-        insertedCount++;
-      } catch (e) {
-        errorCount++;
-        console.error('Ошибка вставки строки:', e.message);
+        for (const col of Object.keys(row)) {
+          // не трогаем ключевые поля и служебные
+          if (uniqueKeys.includes(col) || col === 'id' || col === 'user_id' || col === 'created_at') continue;
+          // заполняем только если на сайте ПУСТО, а в файле есть значение
+          if (isEmpty(dbRow[col]) && !isEmpty(row[col])) {
+            updates.push(`${col} = $${idx}`);
+            updateValues.push(row[col]);
+            idx++;
+          }
+        }
+
+        if (updates.length > 0) {
+          updateValues.push(dbRow.id);
+          try {
+            await query(
+              `UPDATE ${tableName} SET ${updates.join(', ')} WHERE id = $${idx}`,
+              updateValues
+            );
+            mergedCount++;
+          } catch (e) {
+            errorCount++;
+            console.error('Ошибка обновления:', e.message);
+          }
+        } else {
+          skippedCount++; // дубль без новых данных
+        }
+      } else {
+        // ===== НОВАЯ ЗАПИСЬ → ВСТАВЛЯЕМ =====
+        const insertRow = {};
+        for (const col of Object.keys(row)) {
+          if (!isEmpty(row[col])) insertRow[col] = row[col];
+        }
+
+        if (isEmpty(insertRow.id)) insertRow.id = Date.now().toString() + Math.floor(Math.random() * 1000);
+        if (isEmpty(insertRow.user_id)) insertRow.user_id = sessionId;
+        if (isEmpty(insertRow.created_at)) insertRow.created_at = new Date().toISOString();
+
+        const cols = Object.keys(insertRow);
+        const placeholders = cols.map((_, i) => `$${i + 1}`).join(', ');
+        const values = cols.map((c) => insertRow[c]);
+
+        try {
+          await query(
+            `INSERT INTO ${tableName} (${cols.join(', ')}) VALUES (${placeholders})`,
+            values
+          );
+          insertedCount++;
+        } catch (e) {
+          errorCount++;
+          console.error('Ошибка вставки:', e.message);
+        }
       }
     }
 
@@ -200,9 +256,10 @@ export async function POST(request) {
       assay_data: 'Пробы',
     };
 
-    let msg = `Импортировано ${insertedCount} записей в «${tableLabels[tableName]}»`;
-    if (skippedCount) msg += `. Пропущено пустых: ${skippedCount}`;
-    if (errorCount) msg += `. С ошибками: ${errorCount}`;
+    let msg = `«${tableLabels[tableName]}»: добавлено ${insertedCount}`;
+    if (mergedCount) msg += `, дозаполнено ${mergedCount}`;
+    if (skippedCount) msg += `, пропущено ${skippedCount}`;
+    if (errorCount) msg += `, ошибок ${errorCount}`;
 
     return NextResponse.json({ success: true, message: msg });
   } catch (error) {
