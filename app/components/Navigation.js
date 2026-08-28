@@ -60,21 +60,17 @@ export default function Navigation() {
   return (
     <nav className="nav-bar">
       <div className="nav-top">
-        {/* ЛОГО */}
         <Link href={userRole ? '/map' : '/'} className="logo-link">
           <span className="logo-icon">⚒️</span>
           <span className="logo-text">Gold Manager</span>
         </Link>
 
         <div className="nav-right">
-          {/* Кнопка "Выйти" для буровика */}
           {isDriller && (
             <button onClick={handleLogout} className="logout-solo">
               Выйти
             </button>
           )}
-
-          {/* Бургер — если есть пункты */}
           {hasMenuItems && (
             <button onClick={() => setMenuOpen(!menuOpen)} className="burger-btn">
               ☰
@@ -83,7 +79,6 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* Меню для остальных ролей */}
       {hasMenuItems && (
         <div className={`menu-links ${menuOpen ? 'open' : ''}`}>
           {menuItems.map((item) => (
@@ -103,13 +98,9 @@ export default function Navigation() {
 
       <style jsx>{`
         .nav-bar {
-          background: rgba(13, 13, 13, 0.55);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          padding: 0.9rem 1.5rem;
-          border-bottom: 1px solid rgba(212, 175, 55, 0.25);
-          position: sticky;
-          top: 0;
+          background: transparent;
+          padding: 1.2rem 1.5rem;
+          position: relative;
           z-index: 1000;
         }
         .nav-top {
@@ -122,22 +113,22 @@ export default function Navigation() {
         .logo-link {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
+          gap: 0.55rem;
           text-decoration: none;
           transition: opacity 0.2s;
         }
         .logo-link:hover {
-          opacity: 0.85;
+          opacity: 0.8;
         }
         .logo-icon {
-          font-size: 1.6rem;
+          font-size: 1.5rem;
+          opacity: 0.95;
         }
         .logo-text {
-          font-size: 1.4rem;
-          font-weight: 700;
+          font-size: 1.35rem;
+          font-weight: 600;
           color: #d4af37;
-          letter-spacing: 0.3px;
-          text-decoration: none;
+          letter-spacing: 0.5px;
         }
 
         /* ===== ПРАВАЯ ЧАСТЬ ===== */
@@ -150,18 +141,17 @@ export default function Navigation() {
         /* ===== КНОПКА "ВЫЙТИ" БУРОВИКА ===== */
         .logout-solo {
           background: transparent;
-          color: #d4af37;
-          border: 1.5px solid #d4af37;
-          padding: 0.55rem 1.3rem;
-          border-radius: 10px;
-          font-weight: 600;
+          color: #999;
+          border: none;
+          padding: 0.4rem 0.6rem;
+          font-weight: 500;
           font-size: 0.95rem;
+          letter-spacing: 0.3px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: color 0.2s;
         }
         .logout-solo:hover {
-          background: #d4af37;
-          color: #0d0d0d;
+          color: #d4af37;
         }
 
         /* ===== БУРГЕР ===== */
@@ -170,63 +160,59 @@ export default function Navigation() {
           background: none;
           border: none;
           color: #d4af37;
-          font-size: 1.7rem;
+          font-size: 1.6rem;
           cursor: pointer;
-          padding: 0.2rem 0.5rem;
+          padding: 0.2rem 0.4rem;
           line-height: 1;
         }
 
         /* ===== МЕНЮ ===== */
         .menu-links {
           display: flex;
-          gap: 1.2rem;
+          gap: 1.3rem;
           flex-wrap: wrap;
           align-items: center;
-          margin-top: 0;
         }
         .link {
-          color: #cccccc;
-          padding: 0.4rem 0.2rem;
+          color: #999;
+          padding: 0.3rem 0;
           cursor: pointer;
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           white-space: nowrap;
           transition: color 0.2s;
         }
         .link.active {
           color: #d4af37;
-          font-weight: 600;
-          border-bottom: 2px solid #d4af37;
+          font-weight: 500;
         }
         .link:hover {
-          color: #f0d060;
+          color: #d4af37;
         }
         .logout-btn {
           background: none;
-          border: 1px solid #a67c6b;
-          color: #a67c6b;
-          padding: 0.35rem 0.9rem;
-          border-radius: 8px;
+          border: none;
+          color: #999;
+          padding: 0.3rem 0.4rem;
           cursor: pointer;
-          font-size: 0.9rem;
-          transition: 0.2s;
+          font-size: 0.92rem;
+          transition: color 0.2s;
         }
         .logout-btn:hover {
-          background: #a67c6b;
-          color: #0d0d0d;
+          color: #d4af37;
         }
 
-        /* ===== ДЕСКТОП: меню в одну строку с лого ===== */
+        /* ===== ДЕСКТОП ===== */
         @media (min-width: 769px) {
           .nav-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
           }
           .nav-top {
             flex: none;
-          }
-          .menu-links {
-            margin-top: 0;
           }
         }
 
@@ -239,10 +225,10 @@ export default function Navigation() {
             display: none;
             flex-direction: column;
             width: 100%;
-            gap: 0.4rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #333;
-            margin-top: 0.8rem;
+            gap: 0.2rem;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
           }
           .menu-links.open {
             display: flex;
@@ -250,13 +236,12 @@ export default function Navigation() {
           .menu-links .link {
             display: block;
             width: 100%;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid #2a2a2a;
+            padding: 0.7rem 0;
           }
           .logout-btn {
             width: 100%;
+            text-align: left;
             padding: 0.7rem 0;
-            margin-top: 0.4rem;
           }
         }
       `}</style>
