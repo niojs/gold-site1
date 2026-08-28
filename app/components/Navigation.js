@@ -103,13 +103,14 @@ export default function Navigation() {
 
       <style jsx>{`
         .nav-bar {
-          background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+          background: rgba(13, 13, 13, 0.55);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           padding: 0.9rem 1.5rem;
-          border-bottom: 1px solid #d4af37;
+          border-bottom: 1px solid rgba(212, 175, 55, 0.25);
           position: sticky;
           top: 0;
           z-index: 1000;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.5);
         }
         .nav-top {
           display: flex;
