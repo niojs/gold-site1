@@ -53,7 +53,7 @@ export async function POST(request) {
     switch (user.role) {
       case 'admin':
       case 'chief_geologist':
-        redirectUrl = '/dashboard';
+        redirectUrl = '/map';
         break;
       case 'field_geologist':
         redirectUrl = '/field-data';
