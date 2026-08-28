@@ -25,6 +25,7 @@ export async function GET() {
       SELECT 
         id, site as name, hole_number, coordinates,
         project_coordinates, true_coordinates, queue, is_drilled, date,
+        diameter, start_time, end_time,
         'drilling' as type, 'Скважина' as layer
       FROM drilling_records
       WHERE coordinates IS NOT NULL AND coordinates != ''
@@ -63,6 +64,7 @@ export async function POST(request) {
   try {
     const {
       name, coordinates, type, layer, holeNumber, date,
+      site, diameter, startTime, endTime,
       queue, isDrilled, projectCoordinates, trueCoordinates,
     } = await request.json();
 
@@ -83,13 +85,16 @@ export async function POST(request) {
     } else {
       await query(
         `INSERT INTO drilling_records 
-          (id, site, coordinates, project_coordinates, true_coordinates, queue, is_drilled, hole_number, date, user_id, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          (id, site, coordinates, project_coordinates, true_coordinates, queue, is_drilled, hole_number, date, diameter, start_time, end_time, user_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
-          id, name, mainCoords, projectCoordinates || '', trueCoordinates || '',
+          id, site || name, mainCoords, projectCoordinates || '', trueCoordinates || '',
           queue ? parseInt(queue) : null,
           isDrilled === true || isDrilled === 'true',
-          holeNumber || '', date || '', user.id, created_at,
+          holeNumber || '', date || '',
+          diameter ? parseFloat(diameter) : null,
+          startTime || '', endTime || '',
+          user.id, created_at,
         ]
       );
     }
@@ -111,8 +116,11 @@ export async function PATCH(request) {
   }
 
   try {
-    const { id, type, name, holeNumber, queue, isDrilled, projectCoordinates, trueCoordinates } =
-      await request.json();
+    const {
+      id, type, name, holeNumber, queue, isDrilled,
+      projectCoordinates, trueCoordinates,
+      site, diameter, startTime, endTime,
+    } = await request.json();
 
     if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
@@ -121,13 +129,17 @@ export async function PATCH(request) {
       await query(
         `UPDATE drilling_records
          SET site = $1, hole_number = $2, queue = $3, is_drilled = $4,
-             project_coordinates = $5, true_coordinates = $6, coordinates = $7
-         WHERE id = $8`,
+             project_coordinates = $5, true_coordinates = $6, coordinates = $7,
+             diameter = $8, start_time = $9, end_time = $10
+         WHERE id = $11`,
         [
-          name, holeNumber || '',
+          site || name, holeNumber || '',
           queue ? parseInt(queue) : null,
           isDrilled === true || isDrilled === 'true',
-          projectCoordinates || '', trueCoordinates || '', mainCoords, id,
+          projectCoordinates || '', trueCoordinates || '', mainCoords,
+          diameter ? parseFloat(diameter) : null,
+          startTime || '', endTime || '',
+          id,
         ]
       );
     } else {
