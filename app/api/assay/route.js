@@ -17,10 +17,6 @@ export async function GET() {
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-  const result = await query('SELECT * FROM имя_таблицы ORDER BY created_at DESC');
-  records = result.rows;
-}
-  if (role === 'admin' || role === 'chief_geologist') {
     const result = await query('SELECT * FROM assay_data ORDER BY created_at DESC');
     records = result.rows;
   } else if (role === 'sampler') {
