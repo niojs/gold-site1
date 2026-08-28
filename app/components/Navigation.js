@@ -54,7 +54,7 @@ export default function Navigation() {
   };
 
   const menuItems = getMenuItems();
-  const isDriller = userRole === 'driller';
+  const isSinglePageRole = ['driller', 'washer', 'sampler'].includes(userRole);
   const hasMenuItems = menuItems.length > 0;
 
   return (
@@ -66,12 +66,12 @@ export default function Navigation() {
         </Link>
 
         <div className="nav-right">
-          {isDriller && (
+          {isSinglePageRole && (
             <button onClick={handleLogout} className="logout-solo">
               Выйти
             </button>
           )}
-          {hasMenuItems && (
+          {hasMenuItems && !isSinglePageRole && (
             <button onClick={() => setMenuOpen(!menuOpen)} className="burger-btn">
               ☰
             </button>
@@ -79,7 +79,7 @@ export default function Navigation() {
         </div>
       </div>
 
-      {hasMenuItems && (
+      {hasMenuItems && !isSinglePageRole && (
         <div className={`menu-links ${menuOpen ? 'open' : ''}`}>
           {menuItems.map((item) => (
             <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
@@ -138,7 +138,7 @@ export default function Navigation() {
           gap: 0.8rem;
         }
 
-        /* ===== КНОПКА "ВЫЙТИ" БУРОВИКА ===== */
+        /* ===== КНОПКА "ВЫЙТИ" (одностраничные роли) ===== */
         .logout-solo {
           background: transparent;
           color: #999;
