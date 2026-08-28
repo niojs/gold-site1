@@ -37,6 +37,51 @@ function getPointColor(point) {
   return QUEUE_COLORS.default;
 }
 
+// 🔧 УМНЫЙ РАЗБОР КООРДИНАТ — понимает разные форматы
+function parseCoords(raw) {
+  if (!raw) return null;
+  let s = String(raw).trim();
+  if (!s) return null;
+
+  const commaCount = (s.match(/,/g) || []).length;
+  const hasSpace = /\s/.test(s);
+
+  // Формат "54,123 58,456" — запятая-дробь, пробел-разделитель
+  if (hasSpace && (commaCount === 0 || commaCount === 2)) {
+    const parts = s.split(/\s+/).map((p) => Number(p.replace(',', '.')));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+  }
+
+  // Формат "54.123, 58.456" — точка-дробь, запятая-разделитель (стандарт)
+  if (commaCount === 1) {
+    const parts = s.split(',').map((p) => Number(p.trim()));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+  }
+
+  // Формат "54,123, 58,456" — запятая-дробь И запятая-разделитель
+  if (commaCount === 3) {
+    const m = s.match(/^\s*(-?\d+),(\d+)\s*,\s*(-?\d+),(\d+)\s*$/);
+    if (m) {
+      const lat = Number(`${m[1]}.${m[2]}`);
+      const lng = Number(`${m[3]}.${m[4]}`);
+      if (!isNaN(lat) && !isNaN(lng)) return [lat, lng];
+    }
+  }
+
+  // Формат с точкой-запятой "54.123; 58.456"
+  if (s.includes(';')) {
+    const parts = s.split(';').map((p) => Number(p.trim().replace(',', '.')));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+  }
+
+  // Последняя попытка — стандартный split
+  const parts = s.split(',').map((p) => Number(p.trim()));
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+
+  console.warn('Не удалось разобрать координаты:', raw);
+  return null;
+}
+
 export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
@@ -61,11 +106,9 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
 
     mapRef.current = map;
 
-    // 🔧 ГЛАВНЫЙ ФИКС: пересчёт размера (убирает серый экран)
     setTimeout(() => map.invalidateSize(), 100);
     setTimeout(() => map.invalidateSize(), 400);
 
-    // Функции для кнопок в попапе (доступны глобально из HTML попапа)
     window._mapEditPoint = (id) => {
       const point = points.find((p) => String(p.id) === String(id));
       if (point && onEdit) onEdit(point);
@@ -81,7 +124,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
     };
   }, []);
 
-  // Обновляем ссылки на функции при изменении points
   useEffect(() => {
     window._mapEditPoint = (id) => {
       const point = points.find((p) => String(p.id) === String(id));
@@ -109,9 +151,9 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
     filteredPoints.forEach((point) => {
       const coordSource =
         point.true_coordinates || point.project_coordinates || point.coordinates;
-      let coords = coordSource?.split(',').map(Number);
+      const coords = parseCoords(coordSource);
 
-      if (coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+      if (coords) {
         let lat = coords[0];
         let lng = coords[1];
 
@@ -139,7 +181,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           })
         );
 
-        // Статус
         let statusText = '';
         if (point.type === 'drilling') {
           if (isDrilled) statusText = '🔴 Пробурена';
@@ -148,7 +189,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           statusText = 'Полевая точка';
         }
 
-        // Кнопки (только для тех, кто может редактировать)
         const buttonsHtml = canEdit
           ? `<div class="popup-actions">
                <button onclick="window._mapEditPoint('${point.id}')" class="popup-btn edit">✏️ Изменить</button>
@@ -156,7 +196,7 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
              </div>`
           : '';
 
-        marker.bindPopup(`
+                marker.bindPopup(`
           <div class="gold-popup">
             <div class="popup-title">${point.name || 'Без названия'}</div>
             <div class="popup-row"><span>Скважина:</span> ${point.hole_number || '—'}</div>
@@ -290,7 +330,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           font-weight: bold;
         }
 
-        /* Кнопки зума в нашем стиле */
         .leaflet-control-zoom {
           border: 1px solid rgba(212,175,55,0.4) !important;
           border-radius: 10px !important;
@@ -310,7 +349,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           color: #0d0d0d !important;
         }
 
-        /* Попап */
         .gold-popup-wrapper .leaflet-popup-content-wrapper {
           background: linear-gradient(160deg, #1a1a1a, #0d0d0d);
           border: 1px solid #d4af37;
