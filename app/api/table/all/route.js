@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import db from '../../../../lib/db';
+import { query } from '../../../../lib/db';
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -10,8 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }
 
-  const userStmt = db.prepare('SELECT role FROM users WHERE id = ?');
-  const user = userStmt.get(sessionId);
+  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const user = userResult.rows[0];
   const role = user?.role;
 
   if (!['admin', 'chief_geologist'].includes(role)) {
@@ -19,16 +19,16 @@ export async function GET() {
   }
 
   try {
-    const drilling = db.prepare('SELECT * FROM drilling_records ORDER BY created_at DESC').all();
-    const field = db.prepare('SELECT * FROM field_data ORDER BY created_at DESC').all();
-    const washing = db.prepare('SELECT * FROM washing_data ORDER BY created_at DESC').all();
-    const assay = db.prepare('SELECT * FROM assay_data ORDER BY created_at DESC').all();
+    const drillingResult = await query('SELECT * FROM drilling_records ORDER BY created_at DESC');
+    const fieldResult = await query('SELECT * FROM field_data ORDER BY created_at DESC');
+    const washingResult = await query('SELECT * FROM washing_data ORDER BY created_at DESC');
+    const assayResult = await query('SELECT * FROM assay_data ORDER BY created_at DESC');
 
     return NextResponse.json({
-      drilling,
-      field,
-      washing,
-      assay,
+      drilling: drillingResult.rows,
+      field: fieldResult.rows,
+      washing: washingResult.rows,
+      assay: assayResult.rows,
     });
   } catch (error) {
     console.error('Ошибка загрузки всех данных:', error);
