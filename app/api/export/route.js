@@ -34,6 +34,11 @@ export async function GET(request) {
       diameter: 'Диаметр (мм)',
       start_time: 'Начало',
       end_time: 'Конец',
+      queue: 'Очередь',
+      is_drilled: 'Пробурена',
+      project_coordinates: 'Проектные координаты',
+      true_coordinates: 'Фактические координаты',
+      coordinates: 'Координаты',
     },
     field: {
       hole_number: 'Скважина',
@@ -73,6 +78,9 @@ export async function GET(request) {
         let val = row[key];
         if (key === 'date' && val) {
           val = new Date(val).toLocaleDateString('ru-RU');
+        }
+        if (key === 'is_drilled') {
+          val = val ? 'Да' : 'Нет';
         }
         newRow[labels[key]] = val ?? '';
       }
