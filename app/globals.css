@@ -1,20 +1,46 @@
-/* app/globals.css */
+/* app/globals.css — Gold Manager Premium */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+:root {
+  --gold: #d4af37;
+  --gold-light: #f5d876;
+  --gold-dark: #a87b1c;
+  --bg: #0a0a0a;
+  --text: #e0dcc8;
+  --border: #2a251e;
+}
+
 body {
   background: #0a0a0a;
-  color: #e0dcc8;
+  color: var(--text);
   font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Центрирование страницы входа */
+/* ===== Типографика ===== */
+h1, h2, h3 {
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+h1 {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* ===== Логин ===== */
 .login-page {
   display: flex;
   justify-content: center;
@@ -24,50 +50,103 @@ body {
   padding: 1rem;
 }
 
-/* Контейнер */
+/* ===== Контейнер ===== */
 .container {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 1rem;
+  animation: fadeUp 0.6s ease both;
 }
 
-/* Карточки */
+/* ===== Карточки — стекло ===== */
 .gold-card {
-  background: rgba(18, 16, 14, 0.92);
-  backdrop-filter: blur(4px);
-  border: 1px solid #2a251e;
-  border-radius: 16px;
+  background: rgba(20, 18, 15, 0.55);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
-  transition: border-color 0.25s;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
   width: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.6s ease both;
+}
+
+/* Золотая полоса-блик сверху карточки */
+.gold-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 175, 55, 0.6),
+    transparent
+  );
 }
 
 .gold-card:hover {
-  border-color: #d4af37;
+  border-color: rgba(212, 175, 55, 0.45);
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 44px rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(212, 175, 55, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* Кнопки */
+/* ===== Кнопки золотые ===== */
 .btn-gold {
-  background: linear-gradient(145deg, #c9a031, #a87b1c);
+  position: relative;
+  background: linear-gradient(145deg, #e0b842, #a87b1c);
   border: none;
-  padding: 0.7rem 2rem;
+  padding: 0.75rem 2rem;
   border-radius: 40px;
   font-weight: 600;
   color: #0a0a0a;
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.25);
   white-space: nowrap;
   font-size: 1rem;
+  overflow: hidden;
+}
+
+/* Переливающийся блик по кнопке */
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+.btn-gold:hover:not(:disabled)::after {
+  left: 140%;
 }
 
 .btn-gold:hover:not(:disabled) {
-  transform: scale(1.02);
-  box-shadow: 0 6px 30px rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 34px rgba(212, 175, 55, 0.5);
 }
-
+.btn-gold:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+}
 .btn-gold:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -75,49 +154,53 @@ body {
 
 .btn-outline-gold {
   background: transparent;
-  border: 1px solid #d4af37;
-  color: #d4af37;
-  padding: 0.6rem 1.8rem;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 0.65rem 1.8rem;
   border-radius: 40px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
   font-size: 1rem;
 }
-
 .btn-outline-gold:hover {
-  background: #d4af37;
+  background: var(--gold);
   color: #0a0a0a;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px);
 }
 
-/* Поля ввода */
+/* ===== Поля ввода ===== */
 .input-gold {
-  background: #141210;
-  border: 1px solid #2a251e;
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  color: #e0dcc8;
-  transition: 0.2s;
+  background: rgba(20, 18, 16, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  transition: all 0.25s ease;
   width: 100%;
   font-size: 1rem;
 }
-
 .input-gold:focus {
   outline: none;
-  border-color: #d4af37;
+  border-color: var(--gold);
+  background: rgba(20, 18, 16, 0.85);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
-
 .input-gold:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* Таблицы */
+.input-gold::placeholder {
+  color: rgba(224, 220, 200, 0.4);
+}
+/* ===== Таблицы ===== */
 .table-wrapper {
   overflow-x: auto;
   margin: 0 -0.5rem;
   padding: 0 0.5rem;
+  border-radius: 14px;
 }
 
 .table-gold {
@@ -129,107 +212,55 @@ body {
 
 .table-gold th {
   text-align: left;
-  padding: 1rem 0.5rem 0.5rem 0.5rem;
-  color: #d4af37;
-  border-bottom: 1px solid #2a251e;
-  font-weight: 400;
+  padding: 1rem 0.6rem 0.6rem;
+  color: var(--gold);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  font-weight: 500;
   letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.78rem;
 }
 
 .table-gold td {
-  padding: 0.8rem 0.5rem;
-  border-bottom: 1px solid #1a1714;
+  padding: 0.85rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   word-break: break-word;
+  transition: background 0.2s;
 }
 
-/* Формы */
+.table-gold tr {
+  transition: background 0.2s;
+}
+.table-gold tbody tr:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+/* ===== Формы ===== */
 .form-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
   align-items: flex-end;
 }
-
 .form-row .input-gold {
   flex: 1 1 140px;
   min-width: 120px;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  body {
-    padding: 0.5rem;
-  }
-  .container {
-    padding: 0.5rem;
-  }
-  .gold-card {
-    padding: 1rem;
-  }
-  .form-row {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-  .form-row .input-gold {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-  .btn-gold,
-  .btn-outline-gold {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-    padding: 0.7rem;
-  }
-  .table-gold {
-    font-size: 0.75rem;
-    min-width: 280px;
-  }
-  .table-gold th,
-  .table-gold td {
-    padding: 0.4rem 0.3rem;
-  }
-  h1 {
-    font-size: 1.5rem;
-  }
-  h2 {
-    font-size: 1.2rem;
-  }
-  .login-page {
-    padding: 0.5rem;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .form-row .input-gold {
-    flex: 1 1 120px;
-  }
-  .gold-card {
-    padding: 1.5rem;
-  }
-}
 /* ===== Анимированный фон ===== */
-body {
-  background: #0a0a0a;
-  position: relative;
-  overflow-x: hidden;
-}
-
 body::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
+  inset: 0;
+  z-index: -3;
   background:
-    radial-gradient(circle at 20% 20%, rgba(212,175,55,0.12), transparent 40%),
-    radial-gradient(circle at 80% 60%, rgba(212,175,55,0.08), transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(166,124,107,0.10), transparent 40%);
+    radial-gradient(circle at 20% 20%, rgba(212,175,55,0.14), transparent 42%),
+    radial-gradient(circle at 80% 60%, rgba(212,175,55,0.09), transparent 42%),
+    radial-gradient(circle at 50% 90%, rgba(166,124,107,0.10), transparent 42%);
   animation: bgFloat 18s ease-in-out infinite alternate;
 }
 
+/* Диагональная сетка */
 body::after {
   content: '';
   position: fixed;
@@ -237,36 +268,74 @@ body::after {
   left: -50%;
   width: 200%;
   height: 200%;
-  z-index: -1;
+  z-index: -2;
   background:
     repeating-linear-gradient(
       45deg,
       transparent,
       transparent 60px,
-      rgba(212,175,55,0.015) 60px,
-      rgba(212,175,55,0.015) 61px
+      rgba(212,175,55,0.018) 60px,
+      rgba(212,175,55,0.018) 61px
     );
   animation: bgMove 40s linear infinite;
   pointer-events: none;
 }
 
+/* Плавающие золотые частицы (золотая пыль) */
+.gold-dust {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.gold-dust span {
+  position: absolute;
+  display: block;
+  width: 3px;
+  height: 3px;
+  background: rgba(212, 175, 55, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
+  animation: dustRise linear infinite;
+}
+.gold-dust span:nth-child(1)  { left: 10%; animation-duration: 14s; animation-delay: 0s; }
+.gold-dust span:nth-child(2)  { left: 25%; animation-duration: 18s; animation-delay: 2s; }
+.gold-dust span:nth-child(3)  { left: 40%; animation-duration: 12s; animation-delay: 4s; }
+.gold-dust span:nth-child(4)  { left: 55%; animation-duration: 20s; animation-delay: 1s; }
+.gold-dust span:nth-child(5)  { left: 70%; animation-duration: 16s; animation-delay: 3s; }
+.gold-dust span:nth-child(6)  { left: 85%; animation-duration: 22s; animation-delay: 5s; }
+.gold-dust span:nth-child(7)  { left: 18%; animation-duration: 19s; animation-delay: 6s; }
+.gold-dust span:nth-child(8)  { left: 63%; animation-duration: 13s; animation-delay: 2.5s; }
+.gold-dust span:nth-child(9)  { left: 78%; animation-duration: 17s; animation-delay: 4.5s; }
+.gold-dust span:nth-child(10) { left: 33%; animation-duration: 21s; animation-delay: 1.5s; }
+
+/* ===== Анимации ===== */
 @keyframes bgFloat {
   0%   { transform: scale(1) translate(0, 0); }
   50%  { transform: scale(1.1) translate(2%, -2%); }
   100% { transform: scale(1) translate(-2%, 2%); }
 }
-
 @keyframes bgMove {
   0%   { transform: translate(0, 0); }
   100% { transform: translate(60px, 60px); }
 }
-/* ===== Ссылки — убрать дефолтное подчёркивание браузера ===== */
+@keyframes dustRise {
+  0%   { transform: translateY(105vh) scale(0.6); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Ссылки ===== */
 a {
   text-decoration: none;
   color: inherit;
 }
-
-/* Лого — гарантированно чистое */
 .logo-link,
 .logo-link:link,
 .logo-link:visited,
@@ -276,6 +345,64 @@ a {
   border-bottom: none !important;
 }
 .logo-text {
-  color: #d4af37 !important;
+  color: var(--gold) !important;
   text-decoration: none !important;
+}
+
+/* ===== Скроллбар в стиле золота ===== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 10, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--gold-dark), var(--gold));
+  border-radius: 10px;
+  border: 2px solid #0a0a0a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* ===== Выделение текста ===== */
+::selection {
+  background: rgba(212, 175, 55, 0.3);
+  color: #fff;
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 768px) {
+  body { padding: 0.5rem; }
+  .container { padding: 0.5rem; }
+  .gold-card { padding: 1.2rem; border-radius: 16px; }
+  .form-row { flex-direction: column; gap: 0.6rem; }
+  .form-row .input-gold { flex: 1 1 100%; min-width: 0; }
+  .btn-gold, .btn-outline-gold {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+  .table-gold { font-size: 0.75rem; min-width: 280px; }
+  .table-gold th, .table-gold td { padding: 0.45rem 0.35rem; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.2rem; }
+  .login-page { padding: 0.5rem; }
+  /* Меньше частиц на телефоне */
+  .gold-dust span:nth-child(n+6) { display: none; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .form-row .input-gold { flex: 1 1 120px; }
+  .gold-card { padding: 1.5rem; }
+}
+
+/* Уважение к пользователям, кто отключил анимации */
+@media (prefers-reduced-motion: reduce) {
+  *, body::before, body::after, .gold-dust span {
+    animation: none !important;
+    transition: none !important;
+  }
 }
