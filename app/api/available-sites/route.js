@@ -14,10 +14,15 @@ export async function GET() {
   let sites = [];
 
   if (user.role === 'admin' || user.role === 'chief_geologist') {
-    const result = await query(
-      `SELECT DISTINCT work_area FROM primary_survey_data WHERE work_area IS NOT NULL AND work_area != ''`
-    );
-    sites = result.rows.map(r => r.work_area);
+    const managedSites = await query(`SELECT name FROM sites ORDER BY name`);
+    sites = managedSites.rows.map(r => r.name);
+
+    if (sites.length === 0) {
+      const result = await query(
+        `SELECT DISTINCT work_area FROM primary_survey_data WHERE work_area IS NOT NULL AND work_area != ''`
+      );
+      sites = result.rows.map(r => r.work_area);
+    }
 
     if (sites.length === 0) {
       const drillingSites = await query(
@@ -38,6 +43,11 @@ export async function GET() {
       [sessionId]
     );
     sites = assignedResult.rows.map(r => r.site_name);
+
+    if (sites.length === 0) {
+      const managedSites = await query(`SELECT name FROM sites ORDER BY name`);
+      sites = managedSites.rows.map(r => r.name);
+    }
 
     if (sites.length === 0) {
       const allSites = await query(
