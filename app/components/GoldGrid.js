@@ -16,6 +16,8 @@ export default function GoldGrid({
   onAddRow,
   addRowLabel,
   getRowId,
+  onSave,
+  saveLabel,
   rowSelection = 'multiple',
   height = '65vh',
 }) {
@@ -52,7 +54,7 @@ export default function GoldGrid({
   }, [onDeleteRows]);
 
   return (
-    <div style={{ height }}>
+    <div style={{ height, display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.8rem', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '0.6rem' }}>
           {onAddRow && (
@@ -66,15 +68,22 @@ export default function GoldGrid({
             </button>
           )}
         </div>
-        {ready && (
-          <span style={{ color: '#8a7e6a', fontSize: '0.8rem' }}>
-            {gridRef.current?.api?.getDisplayedRowCount() || 0} строк
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {ready && (
+            <span style={{ color: '#8a7e6a', fontSize: '0.8rem' }}>
+              {gridRef.current?.api?.getDisplayedRowCount() || 0} строк
+            </span>
+          )}
+          {onSave && (
+            <button className="btn-gold" onClick={onSave} style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}>
+              {saveLabel || 'Сохранить'}
+            </button>
+          )}
+        </div>
       </div>
       <div
         className="ag-theme-alpine gold-grid"
-        style={{ width: '100%', height: `calc(${height} - 3rem)`, borderRadius: '12px', overflow: 'hidden', colorScheme: 'dark' }}
+        style={{ flex: 1, width: '100%', borderRadius: '12px', overflow: 'hidden', colorScheme: 'dark' }}
       >
         <AgGridReact
           ref={gridRef}
@@ -97,37 +106,44 @@ export default function GoldGrid({
         .gold-grid .ag-theme-alpine {
           --ag-background-color: #111;
           --ag-header-background-color: #1a1712;
-          --ag-odd-row-background-color: rgba(20, 18, 14, 0.5);
+          --ag-odd-row-background-color: #151310;
           --ag-row-hover-color: rgba(212, 175, 55, 0.06);
           --ag-selected-row-background-color: rgba(212, 175, 55, 0.1);
           --ag-range-selection-background-color: rgba(212, 175, 55, 0.08);
           --ag-font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-          --ag-input-focus-color: #d4af37;
-          --ag-input-text-color: #e0dcc8;
           --ag-text-color: #e0dcc8;
           --ag-foreground-color: #e0dcc8;
           --ag-secondary-foreground-color: #e0dcc8;
-          --ag-overlay-loading-background: rgba(17,17,17,0.9);
-          --ag-no-rows-overlay-text-color: #8a7e6a;
+          --ag-border-color: rgba(212, 175, 55, 0.15);
+          --ag-input-focus-color: #d4af37;
+          --ag-input-text-color: #e0dcc8;
+          --ag-input-background-color: #1a1712;
+          --ag-input-border-color: rgba(212, 175, 55, 0.25);
+          --ag-secondary-border-color: rgba(212, 175, 55, 0.15);
+          --ag-popup-shadow: 0 4px 20px rgba(0,0,0,0.8);
           background: #111;
         }
         .gold-grid {
           border: 1px solid rgba(212, 175, 55, 0.2);
           background: #111;
+          color-scheme: dark;
         }
+
+        .gold-grid * {
+          box-sizing: border-box;
+        }
+
         .gold-grid .ag-body-viewport,
         .gold-grid .ag-center-cols-container,
-        .gold-grid .ag-body {
-          background: #111;
+        .gold-grid .ag-body,
+        .gold-grid .ag-body-viewport-wrapper,
+        .gold-grid .ag-center-cols-viewport,
+        .gold-grid .ag-center-cols-scroll-wrapper {
+          background: #111 !important;
         }
-        .gold-grid .ag-overlay-no-rows-wrapper {
-          color: #8a7e6a;
-        }
-        .gold-grid .ag-body-viewport-wrapper {
-          background: #111;
-        }
+
         .gold-grid .ag-header {
-          background: #1a1712;
+          background: #1a1712 !important;
           border-bottom: 1px solid rgba(212, 175, 55, 0.3);
         }
         .gold-grid .ag-header-cell {
@@ -139,6 +155,10 @@ export default function GoldGrid({
         .gold-grid .ag-header-cell::before {
           background: rgba(212, 175, 55, 0.3) !important;
         }
+        .gold-grid .ag-header-icon {
+          color: #d4af37;
+        }
+
         .gold-grid .ag-row {
           border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
@@ -148,20 +168,29 @@ export default function GoldGrid({
         .gold-grid .ag-row-selected {
           background-color: rgba(212, 175, 55, 0.1) !important;
         }
+
         .gold-grid .ag-cell {
           color: #e0dcc8;
           border-right: 1px solid rgba(212, 175, 55, 0.08);
+          background: transparent;
         }
         .gold-grid .ag-cell-focus {
           border-color: #d4af37 !important;
         }
+
+        .gold-grid .ag-overlay-no-rows-wrapper {
+          color: #8a7e6a;
+          font-size: 0.95rem;
+        }
+
         .gold-grid .ag-paging-panel {
           border-top: 1px solid rgba(212, 175, 55, 0.15);
+          background: #1a1712;
           color: #8a7e6a;
         }
         .gold-grid .ag-paging-button {
           color: #d4af37;
-          background: none;
+          background: transparent;
           border: 1px solid rgba(212, 175, 55, 0.2);
           border-radius: 6px;
           padding: 2px 8px;
@@ -177,6 +206,20 @@ export default function GoldGrid({
         .gold-grid .ag-paging-page-summary-panel {
           color: #8a7e6a;
         }
+        .gold-grid .ag-paging-row-summary-panel {
+          color: #8a7e6a;
+        }
+
+        .gold-grid .ag-page-size-number-input,
+        .gold-grid .ag-paging-panel select,
+        .gold-grid .ag-paging-panel input {
+          background: #1a1712;
+          color: #e0dcc8;
+          border: 1px solid rgba(212, 175, 55, 0.2);
+          border-radius: 4px;
+          padding: 2px 4px;
+        }
+
         .gold-grid .ag-checkbox-input-wrapper::after {
           border-color: #d4af37;
         }
@@ -184,20 +227,36 @@ export default function GoldGrid({
           background-color: #d4af37;
           border-color: #d4af37;
         }
-        .gold-grid .ag-body-viewport::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+
+        .gold-grid .ag-cell-editor,
+        .gold-grid .ag-popup-editor,
+        .gold-grid .ag-popup-editor .ag-cell-editor-popup {
+          background: #1a1712 !important;
         }
-        .gold-grid .ag-body-viewport::-webkit-scrollbar-track {
-          background: #111;
+        .gold-grid .ag-cell-editor input,
+        .gold-grid .ag-cell-editor textarea,
+        .gold-grid .ag-popup-editor input,
+        .gold-grid .ag-popup-editor textarea,
+        .gold-grid .ag-input-field-input,
+        .gold-grid .ag-cell-editor .ag-input-field-input,
+        .gold-grid .ag-large-text-input textarea,
+        .gold-grid input.ag-input-field-input,
+        .gold-grid textarea.ag-input-field-input {
+          background: #1a1712 !important;
+          color: #e0dcc8 !important;
+          border-color: rgba(212, 175, 55, 0.25) !important;
+          caret-color: #d4af37;
+          outline: none !important;
         }
-        .gold-grid .ag-body-viewport::-webkit-scrollbar-thumb {
-          background: rgba(212, 175, 55, 0.3);
-          border-radius: 3px;
+        .gold-grid .ag-cell-editor input:focus,
+        .gold-grid .ag-popup-editor input:focus,
+        .gold-grid input.ag-input-field-input:focus,
+        .gold-grid textarea.ag-input-field-input:focus {
+          border-color: #d4af37 !important;
+          outline: none !important;
+          box-shadow: 0 0 0 1px #d4af37;
         }
-        .gold-grid .ag-header-icon {
-          color: #d4af37;
-        }
+
         .gold-grid .ag-floating-filter-input input {
           background: #1a1712;
           border: 1px solid rgba(212, 175, 55, 0.2);
@@ -210,36 +269,40 @@ export default function GoldGrid({
           border-color: #d4af37;
           outline: none;
         }
+
         .gold-grid .ag-icon {
           color: #d4af37;
         }
-        .gold-grid .ag-cell-editor {
+
+        .gold-grid .ag-body-viewport::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .gold-grid .ag-body-viewport::-webkit-scrollbar-track {
+          background: #111;
+        }
+        .gold-grid .ag-body-viewport::-webkit-scrollbar-thumb {
+          background: rgba(212, 175, 55, 0.3);
+          border-radius: 3px;
+        }
+
+        .gold-grid .ag-select-list,
+        .gold-grid .ag-popup-child {
           background: #1a1712;
+          border: 1px solid rgba(212, 175, 55, 0.25);
         }
-        .gold-grid .ag-cell-editor .ag-input-field-input {
-          background: #1a1712;
-          color: #e0dcc8;
-          outline: none;
-        }
-        .gold-grid .ag-cell-editor input,
-        .gold-grid .ag-cell-editor textarea {
-          background: #1a1712 !important;
-          color: #e0dcc8 !important;
-          caret-color: #d4af37;
-        }
-        .gold-grid .ag-cell-editor input:focus,
-        .gold-grid .ag-cell-editor textarea:focus {
-          outline: none;
-        }
-        .gold-grid .ag-popup-editor .ag-input-field-input {
-          background: #1a1712;
-          color: #e0dcc8;
-        }
-        .gold-grid .ag-cell-edit-input {
+        .gold-grid .ag-select-option,
+        .gold-grid .ag-popup-child .ag-list-item {
           color: #e0dcc8;
         }
-        .gold-grid * {
-          color-scheme: dark;
+        .gold-grid .ag-select-option:hover,
+        .gold-grid .ag-popup-child .ag-list-item:hover {
+          background: rgba(212, 175, 55, 0.1);
+        }
+        .gold-grid .ag-select-option-selected,
+        .gold-grid .ag-popup-child .ag-list-item-selected {
+          background: rgba(212, 175, 55, 0.15);
+          color: #d4af37;
         }
       `}</style>
     </div>

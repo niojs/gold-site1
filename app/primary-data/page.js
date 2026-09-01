@@ -225,6 +225,50 @@ export default function PrimaryDataPage() {
     }
   }
 
+  async function handleSaveAll() {
+    const newRecords = records.filter(r => String(r.id).startsWith('temp-'));
+    const editRecords = records.filter(r => !String(r.id).startsWith('temp-') && r.isNew !== false);
+
+    for (const r of newRecords) {
+      if (!r.work_area || !r.hole_number) continue;
+      await fetch('/api/primary-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workArea: r.work_area,
+          lineName: r.line_name,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          elevation: r.elevation,
+          holeNumber: r.hole_number,
+          diameter: r.diameter,
+          intervals: r.intervals,
+        }),
+      });
+    }
+
+    for (const r of editRecords) {
+      await fetch('/api/primary-data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: r.id,
+          workArea: r.work_area,
+          lineName: r.line_name,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          elevation: r.elevation,
+          holeNumber: r.hole_number,
+          diameter: r.diameter,
+          intervals: r.intervals,
+        }),
+      });
+    }
+
+    showMsg('Все данные сохранены');
+    fetchRecords();
+  }
+
   const columnDefs = [
     { headerName: 'Скважина', field: 'hole_number', editable: true, minWidth: 120 },
     { headerName: 'Участок', field: 'work_area', editable: true, minWidth: 120 },
@@ -281,6 +325,8 @@ export default function PrimaryDataPage() {
               onAddRow={handleAddRow}
               addRowLabel="Добавить строку"
               getRowId={getRowId}
+              onSave={handleSaveAll}
+              saveLabel="Сохранить"
               height="65vh"
             />
           )}
