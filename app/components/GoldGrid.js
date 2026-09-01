@@ -102,6 +102,8 @@ export default function GoldGrid({
           --ag-selected-row-background-color: rgba(212, 175, 55, 0.1);
           --ag-range-selection-background-color: rgba(212, 175, 55, 0.08);
           --ag-font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+          --ag-input-focus-color: #d4af37;
+          --ag-input-text-color: #e0dcc8;
         }
         .gold-grid {
           border: 1px solid rgba(212, 175, 55, 0.2);
@@ -193,6 +195,31 @@ export default function GoldGrid({
         }
         .gold-grid .ag-icon {
           color: #d4af37;
+        }
+        .gold-grid .ag-cell-editor {
+          background: #1a1712;
+        }
+        .gold-grid .ag-cell-editor .ag-input-field-input {
+          background: #1a1712;
+          color: #e0dcc8;
+          outline: none;
+        }
+        .gold-grid .ag-cell-editor input,
+        .gold-grid .ag-cell-editor textarea {
+          background: #1a1712 !important;
+          color: #e0dcc8 !important;
+          caret-color: #d4af37;
+        }
+        .gold-grid .ag-cell-editor input:focus,
+        .gold-grid .ag-cell-editor textarea:focus {
+          outline: none;
+        }
+        .gold-grid .ag-popup-editor .ag-input-field-input {
+          background: #1a1712;
+          color: #e0dcc8;
+        }
+        .gold-grid .ag-cell-edit-input {
+          color: #e0dcc8;
         }
       `}</style>
     </div>
