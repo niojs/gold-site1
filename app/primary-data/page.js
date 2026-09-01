@@ -311,13 +311,14 @@ export default function PrimaryDataPage() {
               <thead>
                 <tr>
                   <th>Название</th>
+                  <th>Источник</th>
                   <th>Создан</th>
                   <th style={{ width: 160 }}></th>
                 </tr>
               </thead>
               <tbody>
-                {sitesList.map(site => (
-                  <tr key={site.id}>
+                {sitesList.map((site, i) => (
+                  <tr key={site.id || `extra-${i}`}>
                     <td style={{ fontWeight: 500, color: '#d4af37' }}>
                       {editingSite?.id === site.id ? (
                         <input
@@ -332,44 +333,55 @@ export default function PrimaryDataPage() {
                         site.name
                       )}
                     </td>
+                    <td style={{ color: '#8a7e6a', fontSize: '0.82rem' }}>
+                      {site.managed ? (
+                        <span style={{ color: '#2ecc71' }}>Управляемый</span>
+                      ) : (
+                        <span>Из данных</span>
+                      )}
+                    </td>
                     <td style={{ color: '#8a7e6a', fontSize: '0.85rem' }}>
                       {site.created_at ? new Date(site.created_at).toLocaleDateString() : '—'}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.4rem' }}>
-                        {editingSite?.id === site.id ? (
-                          <>
-                            <button
-                              onClick={() => handleRenameSite(site.id, editingSite.name)}
-                              style={{ background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
-                            >Сохранить</button>
-                            <button
-                              onClick={() => setEditingSite(null)}
-                              style={{ background: 'none', border: 'none', color: '#8a7e6a', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
-                            >Отмена</button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => setEditingSite({ id: site.id, name: site.name })}
-                              style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
-                              onMouseEnter={e => e.target.style.background = 'rgba(212,175,55,0.15)'}
-                              onMouseLeave={e => e.target.style.background = 'none'}
-                            >Изменить</button>
-                            <button
-                              onClick={() => handleDeleteSite(site.id)}
-                              style={{ background: 'none', border: 'none', color: '#cf6b5e', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
-                              onMouseEnter={e => e.target.style.background = 'rgba(207,107,94,0.15)'}
-                              onMouseLeave={e => e.target.style.background = 'none'}
-                            >Удалить</button>
-                          </>
-                        )}
-                      </div>
+                      {site.managed ? (
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          {editingSite?.id === site.id ? (
+                            <>
+                              <button
+                                onClick={() => handleRenameSite(site.id, editingSite.name)}
+                                style={{ background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
+                              >Сохранить</button>
+                              <button
+                                onClick={() => setEditingSite(null)}
+                                style={{ background: 'none', border: 'none', color: '#8a7e6a', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
+                              >Отмена</button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setEditingSite({ id: site.id, name: site.name })}
+                                style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
+                                onMouseEnter={e => e.target.style.background = 'rgba(212,175,55,0.15)'}
+                                onMouseLeave={e => e.target.style.background = 'none'}
+                              >Изменить</button>
+                              <button
+                                onClick={() => handleDeleteSite(site.id)}
+                                style={{ background: 'none', border: 'none', color: '#cf6b5e', cursor: 'pointer', fontSize: '0.85rem', padding: '0.3rem 0.6rem', borderRadius: 6 }}
+                                onMouseEnter={e => e.target.style.background = 'rgba(207,107,94,0.15)'}
+                                onMouseLeave={e => e.target.style.background = 'none'}
+                              >Удалить</button>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#555', fontSize: '0.8rem' }}>—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
                 {sitesList.length === 0 && (
-                  <tr><td colSpan={3} style={{ textAlign: 'center', color: '#555', padding: '1.5rem' }}>Нет участков</td></tr>
+                  <tr><td colSpan={4} style={{ textAlign: 'center', color: '#555', padding: '1.5rem' }}>Нет участков. Добавьте участок или создайте запись с указанием участка</td></tr>
                 )}
               </tbody>
             </table>
