@@ -14,32 +14,45 @@ async function getCurrentUser(sessionId) {
 export async function GET() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
+  const siteFilter = cookieStore.get('selected_site')?.value;
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   if (!CAN_VIEW_MAP.includes(user.role)) {
     return NextResponse.json({ error: 'Нет доступа к карте' }, { status: 403 });
   }
 
+  const useSiteFilter = siteFilter && siteFilter !== '__none__';
+
   try {
-    const drillingResult = await query(`
+    let drillingSql = `
       SELECT 
         id, site, site as name, hole_number, coordinates,
         project_coordinates, true_coordinates, queue, is_drilled, date,
         diameter, start_time, end_time, brigade,
         'drilling' as type, 'Скважина' as layer
       FROM drilling_records
-      WHERE coordinates IS NOT NULL AND coordinates != ''
+      WHERE (coordinates IS NOT NULL AND coordinates != ''
          OR project_coordinates IS NOT NULL AND project_coordinates != ''
-         OR true_coordinates IS NOT NULL AND true_coordinates != ''
-    `);
+         OR true_coordinates IS NOT NULL AND true_coordinates != '')`;
+    const drillingParams = [];
+    if (useSiteFilter) {
+      drillingSql += ` AND site = $1`;
+      drillingParams.push(siteFilter);
+    }
+    const drillingResult = await query(drillingSql, drillingParams);
 
-    const fieldResult = await query(`
+    let fieldSql = `
       SELECT 
         id, site, site as name, hole_number, coordinates, date,
         'field' as type, 'Участок' as layer
       FROM field_data
-      WHERE coordinates IS NOT NULL AND coordinates != ''
-    `);
+      WHERE coordinates IS NOT NULL AND coordinates != ''`;
+    const fieldParams = [];
+    if (useSiteFilter) {
+      fieldSql += ` AND site = $1`;
+      fieldParams.push(siteFilter);
+    }
+    const fieldResult = await query(fieldSql, fieldParams);
 
     const allPoints = [...drillingResult.rows, ...fieldResult.rows];
     return NextResponse.json({

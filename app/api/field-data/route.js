@@ -5,6 +5,7 @@ import { query } from '../../../lib/db';
 export async function GET() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('session')?.value;
+  const siteFilter = cookieStore.get('selected_site')?.value;
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
@@ -14,25 +15,33 @@ export async function GET() {
   const user = userResult.rows[0];
   const role = user?.role;
 
+  const useSiteFilter = siteFilter && siteFilter !== '__none__';
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    const result = await query(
-      `SELECT f.*, u.username as creator_name
+    let sql = `SELECT f.*, u.username as creator_name
        FROM field_data f
-       LEFT JOIN users u ON f.created_by = u.id
-       ORDER BY f.created_at DESC`
-    );
+       LEFT JOIN users u ON f.created_by = u.id`;
+    const params = [];
+    if (useSiteFilter) {
+      sql += ` WHERE f.site = $1`;
+      params.push(siteFilter);
+    }
+    sql += ` ORDER BY f.created_at DESC`;
+    const result = await query(sql, params);
     records = result.rows;
   } else if (role === 'field_geologist') {
-    const result = await query(
-      `SELECT f.*, u.username as creator_name
+    let sql = `SELECT f.*, u.username as creator_name
        FROM field_data f
        LEFT JOIN users u ON f.created_by = u.id
-       WHERE f.user_id = $1
-       ORDER BY f.created_at DESC`,
-      [sessionId]
-    );
+       WHERE f.user_id = $1`;
+    const params = [sessionId];
+    if (useSiteFilter) {
+      sql += ` AND f.site = $2`;
+      params.push(siteFilter);
+    }
+    sql += ` ORDER BY f.created_at DESC`;
+    const result = await query(sql, params);
     records = result.rows;
   }
 

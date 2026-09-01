@@ -29,11 +29,34 @@ export async function GET() {
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
 
+  const cookieStore = await cookies();
+  const siteFilter = cookieStore.get('selected_site')?.value;
+  const useSiteFilter = siteFilter && siteFilter !== '__none__';
+
   try {
-    const drillingResult = await query('SELECT * FROM drilling_records ORDER BY created_at DESC');
-    const fieldResult = await query('SELECT * FROM field_data ORDER BY created_at DESC');
-    const washingResult = await query('SELECT * FROM washing_data ORDER BY created_at DESC');
-    const assayResult = await query('SELECT * FROM assay_data ORDER BY created_at DESC');
+    let drillingSql = 'SELECT * FROM drilling_records';
+    let fieldSql = 'SELECT * FROM field_data';
+    let washingSql = 'SELECT * FROM washing_data';
+    let assaySql = 'SELECT * FROM assay_data';
+    const params = [];
+
+    if (useSiteFilter) {
+      drillingSql += ' WHERE site = $1';
+      fieldSql += ' WHERE site = $1';
+      washingSql += ' WHERE site = $1';
+      assaySql += ' WHERE site = $1';
+      params.push(siteFilter);
+    }
+
+    drillingSql += ' ORDER BY created_at DESC';
+    fieldSql += ' ORDER BY created_at DESC';
+    washingSql += ' ORDER BY created_at DESC';
+    assaySql += ' ORDER BY created_at DESC';
+
+    const drillingResult = await query(drillingSql, params);
+    const fieldResult = await query(fieldSql, params);
+    const washingResult = await query(washingSql, params);
+    const assayResult = await query(assaySql, params);
 
     return NextResponse.json({
       drilling: drillingResult.rows,
