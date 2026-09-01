@@ -74,7 +74,7 @@ export default function GoldGrid({
       </div>
       <div
         className="ag-theme-alpine gold-grid"
-        style={{ width: '100%', height: `calc(${height} - 3rem)`, borderRadius: '12px', overflow: 'hidden' }}
+        style={{ width: '100%', height: `calc(${height} - 3rem)`, borderRadius: '12px', overflow: 'hidden', colorScheme: 'dark' }}
       >
         <AgGridReact
           ref={gridRef}
@@ -104,9 +104,26 @@ export default function GoldGrid({
           --ag-font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
           --ag-input-focus-color: #d4af37;
           --ag-input-text-color: #e0dcc8;
+          --ag-text-color: #e0dcc8;
+          --ag-foreground-color: #e0dcc8;
+          --ag-secondary-foreground-color: #e0dcc8;
+          --ag-overlay-loading-background: rgba(17,17,17,0.9);
+          --ag-no-rows-overlay-text-color: #8a7e6a;
+          background: #111;
         }
         .gold-grid {
           border: 1px solid rgba(212, 175, 55, 0.2);
+          background: #111;
+        }
+        .gold-grid .ag-body-viewport,
+        .gold-grid .ag-center-cols-container,
+        .gold-grid .ag-body {
+          background: #111;
+        }
+        .gold-grid .ag-overlay-no-rows-wrapper {
+          color: #8a7e6a;
+        }
+        .gold-grid .ag-body-viewport-wrapper {
           background: #111;
         }
         .gold-grid .ag-header {
@@ -220,6 +237,9 @@ export default function GoldGrid({
         }
         .gold-grid .ag-cell-edit-input {
           color: #e0dcc8;
+        }
+        .gold-grid * {
+          color-scheme: dark;
         }
       `}</style>
     </div>
