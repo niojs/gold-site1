@@ -163,8 +163,8 @@ export async function PATCH(request) {
         ]
       );
     } else {
-      await query(`UPDATE field_data SET site = $1, hole_number = $2 WHERE id = $3`, [
-        name, hole_number || '', id,
+      await query(`UPDATE field_data SET site = $1, hole_number = $2, coordinates = $3 WHERE id = $4`, [
+        name, hole_number || '', true_coordinates || project_coordinates || '', id,
       ]);
     }
 
@@ -188,10 +188,15 @@ export async function DELETE(request) {
     const { id, type } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
+    let result;
     if (type === 'drilling') {
-      await query('DELETE FROM drilling_records WHERE id = $1', [id]);
+      result = await query('DELETE FROM drilling_records WHERE id = $1', [id]);
     } else {
-      await query('DELETE FROM field_data WHERE id = $1', [id]);
+      result = await query('DELETE FROM field_data WHERE id = $1', [id]);
+    }
+
+    if (result.rowCount === 0) {
+      return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });

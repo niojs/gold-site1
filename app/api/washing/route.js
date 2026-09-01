@@ -117,7 +117,7 @@ export async function PUT(request) {
     const params = [holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', site || null, id];
 
     if (user?.role !== 'admin') {
-      queryText += ' AND user_id = $7';
+      queryText += ' AND user_id = $8';
       params.push(sessionId);
     }
 
@@ -160,7 +160,7 @@ export async function DELETE(request) {
     const params = [...ids];
 
     if (user?.role !== 'admin') {
-      queryText += ' AND user_id = $2';
+      queryText += ` AND user_id = $${ids.length + 1}`;
       params.push(sessionId);
     }
 

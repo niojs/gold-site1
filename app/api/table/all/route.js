@@ -90,8 +90,10 @@ export async function PUT(request) {
       result = await query(
         `UPDATE drilling_records SET
           site = $1, date = $2, hole_number = $3,
-          diameter = $4, start_time = $5, end_time = $6
-         WHERE id = $7`,
+          diameter = $4, start_time = $5, end_time = $6,
+          queue = $7, is_drilled = $8, project_coordinates = $9,
+          true_coordinates = $10, brigade = $11
+         WHERE id = $12`,
         [
           record.site,
           record.date,
@@ -99,6 +101,11 @@ export async function PUT(request) {
           parseFloat(record.diameter) || 0,
           record.start_time,
           record.end_time,
+          record.queue ? parseInt(record.queue) : null,
+          record.is_drilled === true || record.is_drilled === 'true',
+          record.project_coordinates || '',
+          record.true_coordinates || '',
+          record.brigade || null,
           record.id,
         ]
       );
@@ -128,14 +135,15 @@ export async function PUT(request) {
       result = await query(
         `UPDATE washing_data SET
           hole_number = $1, interval = $2, mass = $3,
-          volume = $4, visual_description = $5
-         WHERE id = $6`,
+          volume = $4, visual_description = $5, site = $6
+         WHERE id = $7`,
         [
           record.hole_number,
           record.interval,
           parseFloat(record.mass) || 0,
           parseFloat(record.volume) || 0,
           record.visual_description || '',
+          record.site || null,
           record.id,
         ]
       );
@@ -143,14 +151,15 @@ export async function PUT(request) {
       result = await query(
         `UPDATE assay_data SET
           hole_number = $1, interval = $2, reserves = $3,
-          marks = $4, sample_weight = $5
-         WHERE id = $6`,
+          marks = $4, sample_weight = $5, site = $6
+         WHERE id = $7`,
         [
           record.hole_number,
           record.interval,
           parseFloat(record.reserves) || 0,
           record.marks || '',
           parseFloat(record.sample_weight) || 0,
+          record.site || null,
           record.id,
         ]
       );

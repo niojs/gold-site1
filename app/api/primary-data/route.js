@@ -66,10 +66,14 @@ export async function PUT(request) {
 
   if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
-  await query(
+  const result = await query(
     `UPDATE primary_survey_data SET line_name=$1, latitude=$2, longitude=$3, elevation=$4, work_area=$5, hole_number=$6, diameter=$7, intervals=$8 WHERE id=$9`,
     [lineName || null, latitude || null, longitude || null, elevation || null, workArea, holeNumber, diameter || null, intervals || null, id]
   );
+
+  if (result.rowCount === 0) {
+    return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
+  }
 
   return NextResponse.json({ success: true });
 }
@@ -85,6 +89,11 @@ export async function DELETE(request) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
-  await query('DELETE FROM primary_survey_data WHERE id = $1', [id]);
+  const result = await query('DELETE FROM primary_survey_data WHERE id = $1', [id]);
+
+  if (result.rowCount === 0) {
+    return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
+  }
+
   return NextResponse.json({ success: true });
 }
