@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 function getSelectedSite() {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(/selected_site=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  const val = match ? decodeURIComponent(match[1]) : null;
+  return val === '__none__' ? null : val;
 }
 
 export default function AllDataPage() {

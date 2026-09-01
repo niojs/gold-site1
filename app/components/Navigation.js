@@ -64,7 +64,7 @@ export default function Navigation() {
   return (
     <nav className="nav-bar">
       <div className="nav-top">
-        <Link href={userRole ? '/map' : '/'} className="logo-link">
+        <Link href={userRole ? (userRole === 'admin' || userRole === 'chief_geologist' ? '/primary-data' : '/map') : '/'} className="logo-link">
           <span className="logo-icon">⚒️</span>
           <span className="logo-text">Gold Manager</span>
         </Link>

@@ -59,6 +59,12 @@ export default function SelectSitePage() {
     router.push(redirect);
   }
 
+  function handleGoWithoutSite() {
+    document.cookie = `selected_site=__none__; path=/; max-age=${60 * 60 * 24}`;
+    const redirect = ROLE_REDIRECTS[user?.role] || '/map';
+    router.push(redirect);
+  }
+
   function handleLogout() {
     document.cookie = 'session=; path=/; max-age=0';
     document.cookie = 'selected_site=; path=/; max-age=0';
@@ -89,12 +95,30 @@ export default function SelectSitePage() {
         <div className="gold-card" style={{ textAlign: 'center', padding: '2.5rem' }}>
           <div style={{ fontSize: '2rem', marginBottom: '1rem', opacity: 0.5 }}>📋</div>
           <h2 style={{ color: '#d4af37', fontSize: '1.1rem', marginBottom: '0.5rem' }}>Нет доступных участков</h2>
-          <p style={{ color: '#8a7e6a', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Обратитесь к администратору для назначения участка
-          </p>
-          <button className="btn-outline-gold" onClick={handleLogout}>
-            Выйти
-          </button>
+          {(user?.role === 'admin' || user?.role === 'chief_geologist') ? (
+            <>
+              <p style={{ color: '#8a7e6a', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                Перейдите в «Первичные данные» чтобы добавить участки
+              </p>
+              <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn-gold" onClick={() => { document.cookie = `selected_site=__none__; path=/; max-age=${60 * 60 * 24}`; router.push('/primary-data'); }}>
+                  Добавить участки
+                </button>
+                <button className="btn-outline-gold" onClick={handleLogout}>
+                  Выйти
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ color: '#8a7e6a', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                Обратитесь к администратору для назначения участка
+              </p>
+              <button className="btn-outline-gold" onClick={handleLogout}>
+                Выйти
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
@@ -145,6 +169,21 @@ export default function SelectSitePage() {
               <div style={{ color: '#d4af37', fontSize: '1.2rem', opacity: 0.5 }}>→</div>
             </button>
           ))}
+          {(user?.role === 'admin' || user?.role === 'chief_geologist') && (
+            <button
+              onClick={handleGoWithoutSite}
+              style={{
+                background: 'none', border: '1px solid rgba(212,175,55,0.15)',
+                color: '#8a7e6a', cursor: 'pointer', fontSize: '0.85rem',
+                padding: '0.7rem 1rem', borderRadius: 12, marginTop: '0.5rem',
+                textAlign: 'center', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.target.style.color = '#d4af37'; e.target.style.borderColor = 'rgba(212,175,55,0.4)'; }}
+              onMouseLeave={e => { e.target.style.color = '#8a7e6a'; e.target.style.borderColor = 'rgba(212,175,55,0.15)'; }}
+            >
+              Войти без выбора участка
+            </button>
+          )}
         </div>
       )}
 
