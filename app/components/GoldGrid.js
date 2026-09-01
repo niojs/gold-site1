@@ -33,7 +33,6 @@ export default function GoldGrid({
     minWidth: 100,
     cellStyle: {
       color: '#e0dcc8',
-      background: 'transparent',
       fontSize: '0.85rem',
       borderRight: '1px solid rgba(212,175,55,0.08)',
     },
@@ -161,6 +160,13 @@ export default function GoldGrid({
 
         .gold-grid .ag-row {
           border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          background: #111 !important;
+        }
+        .gold-grid .ag-row-even {
+          background: #111 !important;
+        }
+        .gold-grid .ag-row-odd {
+          background: #151310 !important;
         }
         .gold-grid .ag-row:hover {
           background-color: rgba(212, 175, 55, 0.06) !important;
@@ -172,10 +178,13 @@ export default function GoldGrid({
         .gold-grid .ag-cell {
           color: #e0dcc8;
           border-right: 1px solid rgba(212, 175, 55, 0.08);
-          background: transparent;
+          background: transparent !important;
         }
         .gold-grid .ag-cell-focus {
           border-color: #d4af37 !important;
+        }
+        .gold-grid .ag-cell-editing {
+          background: #1a1712 !important;
         }
 
         .gold-grid .ag-overlay-no-rows-wrapper {
@@ -241,20 +250,37 @@ export default function GoldGrid({
         .gold-grid .ag-cell-editor .ag-input-field-input,
         .gold-grid .ag-large-text-input textarea,
         .gold-grid input.ag-input-field-input,
-        .gold-grid textarea.ag-input-field-input {
+        .gold-grid textarea.ag-input-field-input,
+        .gold-grid .ag-cell input,
+        .gold-grid .ag-cell textarea,
+        .gold-grid .ag-cell-editor-popup input {
+          background-color: #1a1712 !important;
           background: #1a1712 !important;
           color: #e0dcc8 !important;
           border-color: rgba(212, 175, 55, 0.25) !important;
-          caret-color: #d4af37;
+          caret-color: #d4af37 !important;
           outline: none !important;
+          box-shadow: none !important;
         }
         .gold-grid .ag-cell-editor input:focus,
         .gold-grid .ag-popup-editor input:focus,
         .gold-grid input.ag-input-field-input:focus,
-        .gold-grid textarea.ag-input-field-input:focus {
+        .gold-grid textarea.ag-input-field-input:focus,
+        .gold-grid .ag-cell input:focus,
+        .gold-grid .ag-cell-editor-popup input:focus {
           border-color: #d4af37 !important;
           outline: none !important;
-          box-shadow: 0 0 0 1px #d4af37;
+          box-shadow: 0 0 0 1px #d4af37 !important;
+        }
+        .gold-grid .ag-cell-editor input::placeholder,
+        .gold-grid .ag-cell input::placeholder {
+          color: #666 !important;
+        }
+        .gold-grid .ag-input-field-input-wrapper {
+          background: #1a1712 !important;
+        }
+        .gold-grid .ag-cell-editor .ag-input-field {
+          background: #1a1712 !important;
         }
 
         .gold-grid .ag-floating-filter-input input {
