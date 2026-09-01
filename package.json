@@ -4,7 +4,7 @@
   "description": "Сайт для управления золотодобычей",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start"
   },
@@ -12,7 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ag-grid-community": "^33.0.3",
+    "ag-grid-react": "^33.0.3",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "leaflet": "^1.9.4",
     "next": "^16.2.11",

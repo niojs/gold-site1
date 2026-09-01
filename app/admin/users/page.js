@@ -213,16 +213,20 @@ export default function UsersPage() {
                   <td style={{ textAlign: 'center' }}>
                     <button
                       onClick={() => handleDelete(user.id)}
+                      disabled={user.username === 'admin'}
                       style={{
                         background: 'none',
-                        border: 'none',
-                        color: '#a67c6b',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
+                        border: '1px solid rgba(207,107,94,0.4)',
+                        color: user.username === 'admin' ? '#555' : '#cf6b5e',
+                        cursor: user.username === 'admin' ? 'not-allowed' : 'pointer',
+                        fontSize: '0.82rem',
+                        padding: '0.3rem 0.6rem',
+                        borderRadius: 8,
+                        opacity: user.username === 'admin' ? 0.4 : 1,
+                        transition: 'all 0.2s',
                       }}
-                      disabled={user.username === 'admin'}
                     >
-                      🗑️
+                      Удалить
                     </button>
                   </td>
                 </tr>

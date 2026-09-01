@@ -1,423 +1,164 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import GoldGrid from '../components/GoldGrid';
+
+function getSelectedSite() {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/selected_site=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 export default function WashingPage() {
   const [records, setRecords] = useState([]);
-  const [form, setForm] = useState({
-    holeNumber: '',
-    interval: '',
-    mass: '',
-    volume: '',
-    visualDescription: '',
-  });
-  const [editingId, setEditingId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [selectedSite, setSelectedSite] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
 
-  const fetchRecords = async () => {
-    try {
-      const res = await fetch('/api/washing', { credentials: 'include' });
-      if (!res.ok) {
-        if (res.status === 401) router.push('/');
-        return;
-      }
-      const data = await res.json();
-      setRecords(data);
-    } catch (err) {
-      console.error('Ошибка загрузки:', err);
-    }
-  };
-
   useEffect(() => {
-    fetchRecords();
+    const site = getSelectedSite();
+    if (!site) { router.push('/select-site'); return; }
+    setSelectedSite(site);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    const method = editingId ? 'PUT' : 'POST';
-    const body = editingId ? { ...form, id: editingId } : form;
-
+  const fetchRecords = useCallback(async () => {
     try {
-      const res = await fetch('/api/washing', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        credentials: 'include',
-      });
+      const res = await fetch('/api/washing', { credentials: 'include' });
+      if (!res.ok) { if (res.status === 401) router.push('/'); return; }
+      const data = await res.json();
+      const site = getSelectedSite();
+      const filtered = site ? data.filter(r => (r.site || '') === site) : data;
+      setRecords(filtered);
+    } catch (err) { console.error(err); }
+  }, [router]);
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || 'Ошибка сохранения');
-        return;
-      }
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-      setForm({ holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '' });
-      setEditingId(null);
-      fetchRecords();
-    } catch (err) {
-      setError('Ошибка соединения');
-    } finally {
-      setLoading(false);
+  const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
+
+  const columnDefs = [
+    { headerName: 'Номер скважины', field: 'holeNumber', editable: true },
+    { headerName: 'Интервал', field: 'interval', editable: true },
+    { headerName: 'Масса (кг)', field: 'mass', editable: true, type: 'numericColumn' },
+    { headerName: 'Объём (л)', field: 'volume', editable: true, type: 'numericColumn' },
+    { headerName: 'Визуально', field: 'visualDescription', editable: true },
+    { headerName: 'Записал', field: 'creatorName', editable: false },
+  ];
+
+  const rowData = records.map(r => ({
+    id: r.id,
+    holeNumber: r.hole_number || '',
+    interval: r.interval || '',
+    mass: r.mass ?? '',
+    volume: r.volume ?? '',
+    visualDescription: r.visual_description || '',
+    creatorName: r.creator_name || '',
+    site: r.site || '',
+  }));
+
+  const onCellValueChanged = useCallback(async (e) => {
+    const row = e.data;
+    if (String(row.id).startsWith('new_')) {
+      try {
+        const res = await fetch('/api/washing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            holeNumber: row.holeNumber,
+            interval: row.interval,
+            mass: row.mass === '' ? null : Number(row.mass),
+            volume: row.volume === '' ? null : Number(row.volume),
+            visualDescription: row.visualDescription,
+            site: selectedSite,
+          }),
+        });
+        if (!res.ok) { const data = await res.json(); setError(data.error || 'Ошибка'); return; }
+        showSuccess('Запись добавлена');
+        fetchRecords();
+      } catch { setError('Ошибка соединения'); }
+    } else {
+      try {
+        const res = await fetch('/api/washing', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: row.id,
+            holeNumber: row.holeNumber,
+            interval: row.interval,
+            mass: row.mass === '' ? null : Number(row.mass),
+            volume: row.volume === '' ? null : Number(row.volume),
+            visualDescription: row.visualDescription,
+            site: selectedSite,
+          }),
+        });
+        if (!res.ok) { const data = await res.json(); setError(data.error || 'Ошибка'); return; }
+        showSuccess('Запись обновлена');
+      } catch { setError('Ошибка соединения'); }
     }
-  };
+  }, [selectedSite, fetchRecords]);
 
-  const handleEdit = (record) => {
-    setEditingId(record.id);
-    setForm({
-      holeNumber: record.hole_number || '',
-      interval: record.interval || '',
-      mass: record.mass || '',
-      volume: record.volume || '',
-      visualDescription: record.visual_description || '',
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const onAddRow = useCallback(() => {
+    setRecords(prev => [
+      { id: 'new_' + Date.now(), holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '', site: selectedSite, creatorName: '' },
+      ...prev,
+    ]);
+  }, [selectedSite]);
 
-  const handleDelete = async (id) => {
-    if (!confirm('Удалить запись?')) return;
-
+  const onDeleteRows = useCallback(async (rows) => {
+    const ids = rows.map(r => r.id).filter(id => !String(id).startsWith('new_'));
+    if (ids.length === 0) return;
     try {
       const res = await fetch('/api/washing', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
         credentials: 'include',
+        body: JSON.stringify({ id: ids.length === 1 ? ids[0] : ids }),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || 'Ошибка удаления');
-        return;
-      }
-
+      if (!res.ok) { const data = await res.json(); setError(data.error || 'Ошибка'); return; }
+      showSuccess('Записи удалены');
       fetchRecords();
-    } catch (err) {
-      setError('Ошибка соединения');
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setForm({ holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '' });
-  };
+    } catch { setError('Ошибка соединения'); }
+  }, [fetchRecords]);
 
   return (
-    <div className="washing-page">
-      <h1 className="page-title">Отдел промывки</h1>
-
-      {error && <div className="error-box">{error}</div>}
-
-      {/* ===== ФОРМА ===== */}
-      <div className="card">
-        <h2 className="card-title">{editingId ? 'Редактировать запись' : 'Новая запись'}</h2>
-
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="field">
-            <label>Номер скважины *</label>
-            <input
-              placeholder="Например: 12-А"
-              value={form.holeNumber}
-              onChange={(e) => setForm({ ...form, holeNumber: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label>Интервал *</label>
-            <input
-              placeholder="Например: 0-2 м"
-              value={form.interval}
-              onChange={(e) => setForm({ ...form, interval: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label>Масса (кг) *</label>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={form.mass}
-              onChange={(e) => setForm({ ...form, mass: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label>Объём (л) *</label>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={form.volume}
-              onChange={(e) => setForm({ ...form, volume: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="field full">
-            <label>Визуальное определение</label>
-            <input
-              placeholder="Описание (необязательно)"
-              value={form.visualDescription}
-              onChange={(e) => setForm({ ...form, visualDescription: e.target.value })}
-            />
-          </div>
-
-          <div className="form-actions full">
-            <button className="btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Сохранение...' : editingId ? 'Обновить' : 'Сохранить'}
-            </button>
-            {editingId && (
-              <button className="btn-secondary" type="button" onClick={handleCancel}>
-                Отмена
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* ===== ЗАПИСИ ===== */}
-      <div className="card">
-        <h2 className="card-title">Мои записи</h2>
-
-        {records.length === 0 ? (
-          <p className="empty">Нет записей</p>
-        ) : (
-          <div className="records-list">
-            {records.map((rec) => (
-              <div className="record" key={rec.id}>
-                <div className="record-main">
-                  <div className="record-hole">Скв. {rec.hole_number}</div>
-                  <div className="record-actions">
-                    <button onClick={() => handleEdit(rec)} className="icon-btn edit">✏️</button>
-                    <button onClick={() => handleDelete(rec.id)} className="icon-btn del">🗑️</button>
-                  </div>
-                </div>
-                <div className="record-grid">
-                  <div><span>Интервал:</span> {rec.interval}</div>
-                  <div><span>Масса:</span> {rec.mass} кг</div>
-                  <div><span>Объём:</span> {rec.volume} л</div>
-                </div>
-                {rec.visual_description && (
-                  <div className="record-desc">
-                    <span>Визуально:</span> {rec.visual_description}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.5rem' }}>
+        <h1 style={{ color: '#e0dcc8', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Отдел промывки</h1>
+        {selectedSite && (
+          <span style={{
+            background: 'rgba(212,175,55,0.15)', color: '#d4af37',
+            fontSize: '0.8rem', fontWeight: 600, padding: '0.25rem 0.7rem', borderRadius: 20,
+          }}>{selectedSite}</span>
         )}
       </div>
 
-      <style jsx>{`
-        .washing-page {
-          max-width: 720px;
-          margin: 0 auto;
-          padding: 1.5rem;
-        }
-        .page-title {
-          color: #d4af37;
-          font-size: 1.7rem;
-          font-weight: 600;
-          margin-bottom: 1.8rem;
-          letter-spacing: 0.5px;
-        }
+      {error && (
+        <div style={{
+          background: 'rgba(207,107,94,0.1)', border: '1px solid rgba(207,107,94,0.4)',
+          color: '#cf6b5e', padding: '0.8rem 1.2rem', borderRadius: 12, marginBottom: '1.5rem',
+        }}>{error}</div>
+      )}
+      {success && (
+        <div style={{
+          background: 'rgba(46,204,113,0.1)', border: '1px solid rgba(46,204,113,0.4)',
+          color: '#2ecc71', padding: '0.8rem 1.2rem', borderRadius: 12, marginBottom: '1.5rem',
+        }}>{success}</div>
+      )}
 
-        /* ===== КАРТОЧКА ===== */
-        .card {
-          background: rgba(20, 18, 15, 0.5);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(212, 175, 55, 0.25);
-          border-radius: 16px;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-        .card-title {
-          color: #d4af37;
-          font-size: 1.15rem;
-          font-weight: 600;
-          margin-bottom: 1.3rem;
-        }
-
-        /* ===== ФОРМА ===== */
-        .form-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-        .field {
-          display: flex;
-          flex-direction: column;
-          gap: 0.35rem;
-        }
-        .field.full {
-          grid-column: 1 / -1;
-        }
-        .field label {
-          color: #a89a7e;
-          font-size: 0.78rem;
-          letter-spacing: 0.3px;
-          padding-left: 0.2rem;
-        }
-        .field input {
-          background: rgba(10, 10, 10, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 10px;
-          padding: 0.8rem 0.9rem;
-          color: #e0dcc8;
-          font-size: 0.95rem;
-          transition: all 0.2s ease;
-          width: 100%;
-        }
-        .field input::placeholder {
-          color: #555;
-        }
-        .field input:focus {
-          outline: none;
-          border-color: #d4af37;
-          background: rgba(10, 10, 10, 0.7);
-          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-        }
-
-        /* ===== КНОПКИ ФОРМЫ ===== */
-        .form-actions {
-          display: flex;
-          gap: 0.8rem;
-          margin-top: 0.3rem;
-        }
-        .btn-primary {
-          flex: 1;
-          background: linear-gradient(135deg, #d4af37, #b8901f);
-          color: #0a0a0a;
-          border: none;
-          border-radius: 10px;
-          padding: 0.9rem;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .btn-primary:hover:not(:disabled) {
-          box-shadow: 0 6px 18px rgba(212, 175, 55, 0.3);
-        }
-        .btn-primary:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .btn-secondary {
-          background: transparent;
-          color: #999;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 10px;
-          padding: 0.9rem 1.5rem;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .btn-secondary:hover {
-          color: #d4af37;
-          border-color: #d4af37;
-        }
-
-        /* ===== ОШИБКА ===== */
-        .error-box {
-          background: rgba(207, 107, 94, 0.12);
-          border: 1px solid rgba(207, 107, 94, 0.4);
-          color: #cf6b5e;
-          padding: 0.9rem 1.2rem;
-          border-radius: 12px;
-          margin-bottom: 1.5rem;
-        }
-
-        /* ===== ЗАПИСИ (карточки) ===== */
-        .empty {
-          color: #8a7e6a;
-          text-align: center;
-          padding: 1.5rem 0;
-        }
-        .records-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.9rem;
-        }
-        .record {
-          background: rgba(10, 10, 10, 0.35);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 12px;
-          padding: 1rem 1.1rem;
-        }
-        .record-main {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.7rem;
-        }
-        .record-hole {
-          color: #d4af37;
-          font-size: 1.05rem;
-          font-weight: 600;
-        }
-        .record-actions {
-          display: flex;
-          gap: 0.3rem;
-        }
-        .icon-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 1.15rem;
-          padding: 0.2rem 0.4rem;
-          border-radius: 8px;
-          transition: background 0.2s;
-        }
-        .icon-btn:hover {
-          background: rgba(255, 255, 255, 0.06);
-        }
-        .record-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 0.5rem;
-          font-size: 0.9rem;
-          color: #ddd;
-        }
-        .record-grid span {
-          color: #8a7e6a;
-          font-size: 0.8rem;
-          display: block;
-        }
-        .record-desc {
-          margin-top: 0.7rem;
-          padding-top: 0.7rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          font-size: 0.9rem;
-          color: #ddd;
-        }
-        .record-desc span {
-          color: #8a7e6a;
-        }
-
-        /* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
-        @media (max-width: 600px) {
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
-          .form-actions {
-            flex-direction: column;
-          }
-          .record-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-      `}</style>
+      <GoldGrid
+        columnDefs={columnDefs}
+        rowData={rowData}
+        onCellValueChanged={onCellValueChanged}
+        onDeleteRows={onDeleteRows}
+        onAddRow={onAddRow}
+        addRowLabel="+ Добавить строку"
+        getRowId={params => params.data.id}
+        height="65vh"
+      />
     </div>
   );
 }

@@ -17,10 +17,22 @@ export async function GET() {
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    const result = await query('SELECT * FROM field_data ORDER BY created_at DESC');
+    const result = await query(
+      `SELECT f.*, u.username as creator_name
+       FROM field_data f
+       LEFT JOIN users u ON f.created_by = u.id
+       ORDER BY f.created_at DESC`
+    );
     records = result.rows;
   } else if (role === 'field_geologist') {
-    const result = await query('SELECT * FROM field_data WHERE user_id = $1 ORDER BY created_at DESC', [sessionId]);
+    const result = await query(
+      `SELECT f.*, u.username as creator_name
+       FROM field_data f
+       LEFT JOIN users u ON f.created_by = u.id
+       WHERE f.user_id = $1
+       ORDER BY f.created_at DESC`,
+      [sessionId]
+    );
     records = result.rows;
   }
 
@@ -43,17 +55,9 @@ export async function POST(request) {
 
   try {
     const {
-      holeNumber,
-      coordinates,
-      lineHeight,
-      intervals,
-      geologicalDescription,
-      ugv,
-      date,
-      time,
-      site,
-      diameter,
-      coreRecovery,
+      holeNumber, coordinates, lineHeight, intervals,
+      geologicalDescription, ugv, date, time, site,
+      diameter, coreRecovery, brigade,
     } = await request.json();
 
     if (!holeNumber || !coordinates || !site) {
@@ -66,23 +70,15 @@ export async function POST(request) {
     await query(
       `INSERT INTO field_data (
         id, user_id, hole_number, coordinates, line_height, intervals,
-        geological_description, ugv, date, time, site, diameter, core_recovery, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        geological_description, ugv, date, time, site, diameter, core_recovery, created_at, created_by, brigade
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
       [
-        id,
-        sessionId,
-        holeNumber,
-        coordinates,
-        parseFloat(lineHeight) || 0,
-        intervals || '',
-        geologicalDescription || '',
-        parseFloat(ugv) || 0,
-        date || '',
-        time || '',
-        site,
-        parseFloat(diameter) || 0,
-        parseFloat(coreRecovery) || 0,
-        created_at,
+        id, sessionId, holeNumber, coordinates,
+        parseFloat(lineHeight) || 0, intervals || '',
+        geologicalDescription || '', parseFloat(ugv) || 0,
+        date || '', time || '', site,
+        parseFloat(diameter) || 0, parseFloat(coreRecovery) || 0,
+        created_at, sessionId, brigade || null,
       ]
     );
 
@@ -109,18 +105,9 @@ export async function PUT(request) {
 
   try {
     const {
-      id,
-      holeNumber,
-      coordinates,
-      lineHeight,
-      intervals,
-      geologicalDescription,
-      ugv,
-      date,
-      time,
-      site,
-      diameter,
-      coreRecovery,
+      id, holeNumber, coordinates, lineHeight, intervals,
+      geologicalDescription, ugv, date, time, site,
+      diameter, coreRecovery, brigade,
     } = await request.json();
 
     if (!id || !holeNumber || !coordinates || !site) {
@@ -129,36 +116,20 @@ export async function PUT(request) {
 
     let queryText = `
       UPDATE field_data SET
-        hole_number = $1,
-        coordinates = $2,
-        line_height = $3,
-        intervals = $4,
-        geological_description = $5,
-        ugv = $6,
-        date = $7,
-        time = $8,
-        site = $9,
-        diameter = $10,
-        core_recovery = $11
-      WHERE id = $12
+        hole_number = $1, coordinates = $2, line_height = $3, intervals = $4,
+        geological_description = $5, ugv = $6, date = $7, time = $8,
+        site = $9, diameter = $10, core_recovery = $11, brigade = $12
+      WHERE id = $13
     `;
     const params = [
-      holeNumber,
-      coordinates,
-      parseFloat(lineHeight) || 0,
-      intervals || '',
-      geologicalDescription || '',
-      parseFloat(ugv) || 0,
-      date || '',
-      time || '',
-      site,
-      parseFloat(diameter) || 0,
-      parseFloat(coreRecovery) || 0,
-      id,
+      holeNumber, coordinates, parseFloat(lineHeight) || 0,
+      intervals || '', geologicalDescription || '', parseFloat(ugv) || 0,
+      date || '', time || '', site, parseFloat(diameter) || 0,
+      parseFloat(coreRecovery) || 0, brigade || null, id,
     ];
 
     if (user?.role !== 'admin') {
-      queryText += ' AND user_id = $13';
+      queryText += ' AND user_id = $14';
       params.push(sessionId);
     }
 

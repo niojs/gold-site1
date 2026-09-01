@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+function getSelectedSite() {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/selected_site=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export default function AllDataPage() {
+  const [rawData, setRawData] = useState({ drilling: [], field: [], washing: [], assay: [] });
   const [data, setData] = useState({ drilling: [], field: [], washing: [], assay: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -11,7 +18,25 @@ export default function AllDataPage() {
   const [expanded, setExpanded] = useState(null);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [selectedSite, setSelectedSite] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    const site = getSelectedSite();
+    if (!site) { router.push('/select-site'); return; }
+    setSelectedSite(site);
+  }, []);
+
+  const filterBySite = (raw) => {
+    const site = getSelectedSite();
+    if (!site) return raw;
+    return {
+      drilling: (raw.drilling || []).filter(r => (r.site || '') === site),
+      field: (raw.field || []).filter(r => (r.site || '') === site),
+      washing: (raw.washing || []).filter(r => (r.site || '') === site),
+      assay: (raw.assay || []).filter(r => (r.site || '') === site),
+    };
+  };
 
   const fetchAllData = async () => {
     try {
@@ -20,7 +45,9 @@ export default function AllDataPage() {
         if (res.status === 401 || res.status === 403) router.push('/');
         return;
       }
-      setData(await res.json());
+      const raw = await res.json();
+      setRawData(raw);
+      setData(filterBySite(raw));
     } catch {
       setError('Ошибка загрузки данных');
     } finally {
@@ -77,6 +104,7 @@ export default function AllDataPage() {
       { key: 'coordinates', label: 'Координаты', type: 'text' },
       { key: 'project_coordinates', label: 'Проектные координаты', type: 'text' },
       { key: 'true_coordinates', label: 'Фактические координаты', type: 'text' },
+      { key: 'brigade', label: 'Бригада', type: 'text' },
     ],
     field: [
       { key: 'hole_number', label: 'Скважина', type: 'text' },
@@ -90,6 +118,7 @@ export default function AllDataPage() {
       { key: 'time', label: 'Время', type: 'time' },
       { key: 'diameter', label: 'Диаметр (мм)', type: 'number' },
       { key: 'core_recovery', label: 'Выход керна (%)', type: 'number' },
+      { key: 'brigade', label: 'Бригада', type: 'text' },
     ],
     washing: [
       { key: 'hole_number', label: 'Скважина', type: 'text' },
@@ -123,8 +152,8 @@ export default function AllDataPage() {
         ['Начало', rec.start_time || '—'],
         ['Конец', rec.end_time || '—'],
         ['Координаты', rec.coordinates || '—'],
-        ['Проектные', rec.project_coordinates || '—'],
-        ['Фактические', rec.true_coordinates || '—'],
+        ['Бригада', rec.brigade || '—'],
+        ['Создал', rec.creator_name || '—'],
       ],
       field: [
         ['Координаты', rec.coordinates],
@@ -135,19 +164,22 @@ export default function AllDataPage() {
         ['УГВ', rec.ugv ? `${rec.ugv} м` : '—'],
         ['Диаметр', rec.diameter ? `${rec.diameter} мм` : '—'],
         ['Выход керна', rec.core_recovery ? `${rec.core_recovery}%` : '—'],
-        ['Геоописание', rec.geological_description || '—'],
+        ['Бригада', rec.brigade || '—'],
+        ['Создал', rec.creator_name || '—'],
       ],
       washing: [
         ['Интервал', rec.interval],
         ['Масса', rec.mass],
         ['Объём', rec.volume],
         ['Описание', rec.visual_description || '—'],
+        ['Создал', rec.creator_name || '—'],
       ],
       assay: [
         ['Интервал', rec.interval],
         ['Запасы', rec.reserves],
         ['Отметки', rec.marks || '—'],
         ['Вес пробы', rec.sample_weight],
+        ['Создал', rec.creator_name || '—'],
       ],
     };
     return map[type];
@@ -179,7 +211,16 @@ export default function AllDataPage() {
   return (
     <div className="all-data-page">
       <div className="header">
-        <h1 className="page-title">Все данные</h1>
+        <h1 className="page-title">
+          Все данные
+          {selectedSite && (
+            <span style={{
+              background: 'rgba(212,175,55,0.15)', color: '#d4af37',
+              fontSize: '0.8rem', fontWeight: 600, padding: '0.25rem 0.7rem', borderRadius: 20,
+              marginLeft: '0.8rem', verticalAlign: 'middle',
+            }}>{selectedSite}</span>
+          )}
+        </h1>
         <span className="total-badge">{totalRecords} записей · {holeNumbers.length} скважин</span>
       </div>
 
@@ -295,11 +336,11 @@ export default function AllDataPage() {
                 </div>
               ))}
               <div className="modal-actions">
-                <button className="btn-primary" type="submit" disabled={saving}>
+                <button className="btn-gold" type="submit" disabled={saving}>
                   {saving ? 'Сохранение...' : 'Сохранить'}
                 </button>
                 <button
-                  className="btn-secondary"
+                  className="btn-outline-gold"
                   type="button"
                   onClick={() => setEditing(null)}
                 >

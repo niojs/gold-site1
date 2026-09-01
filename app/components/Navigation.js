@@ -21,18 +21,25 @@ export default function Navigation() {
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
+    document.cookie = 'selected_site=; path=/; max-age=0';
     router.push('/');
+  };
+
+  const handleChangeSite = () => {
+    router.push('/select-site');
   };
 
   const getMenuItems = () => {
     const roleSpecific = {
       admin: [
+        { href: '/primary-data', label: '📐 Первичные данные' },
         { href: '/admin/users', label: '👥 Пользователи' },
         { href: '/table', label: '📋 Все данные' },
         { href: '/map', label: '🗺️ Карта' },
         { href: '/import-export', label: '📤 Импорт/Экспорт' },
       ],
       chief_geologist: [
+        { href: '/primary-data', label: '📐 Первичные данные' },
         { href: '/table', label: '📋 Все рабочие данные' },
         { href: '/map', label: '🗺️ Карта' },
         { href: '/import-export', label: '📤 Импорт/Экспорт' },
@@ -64,9 +71,14 @@ export default function Navigation() {
 
         <div className="nav-right">
           {isSinglePageRole && (
-            <button onClick={handleLogout} className="logout-solo">
-              Выйти
-            </button>
+            <>
+              <button onClick={handleChangeSite} className="site-btn">
+                🗺️ Участок
+              </button>
+              <button onClick={handleLogout} className="logout-solo">
+                Выйти
+              </button>
+            </>
           )}
           {hasMenuItems && !isSinglePageRole && (
             <button onClick={() => setMenuOpen(!menuOpen)} className="burger-btn">
@@ -86,9 +98,14 @@ export default function Navigation() {
             </Link>
           ))}
           {userRole && (
-            <button onClick={handleLogout} className="logout-btn">
-              Выйти
-            </button>
+            <>
+              <button onClick={handleChangeSite} className="link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.92rem' }}>
+                🗺️ Сменить участок
+              </button>
+              <button onClick={handleLogout} className="logout-btn">
+                Выйти
+              </button>
+            </>
           )}
         </div>
       )}
@@ -149,6 +166,21 @@ export default function Navigation() {
         }
         .logout-solo:hover {
           color: #d4af37;
+        }
+        .site-btn {
+          background: transparent;
+          color: #d4af37;
+          border: 1px solid rgba(212,175,55,0.3);
+          padding: 0.35rem 0.7rem;
+          font-weight: 500;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          border-radius: 8px;
+        }
+        .site-btn:hover {
+          background: rgba(212,175,55,0.1);
+          border-color: #d4af37;
         }
 
         /* ===== БУРГЕР ===== */

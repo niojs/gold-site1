@@ -49,33 +49,11 @@ export async function POST(request) {
       path: '/',
     });
 
-    let redirectUrl = '/';
-    switch (user.role) {
-      case 'admin':
-      case 'chief_geologist':
-        redirectUrl = '/map';
-        break;
-      case 'field_geologist':
-        redirectUrl = '/field-data';
-        break;
-      case 'driller':
-        redirectUrl = '/map';
-        break;
-      case 'washer':
-        redirectUrl = '/washing';
-        break;
-      case 'sampler':
-        redirectUrl = '/assay';
-        break;
-      default:
-        redirectUrl = '/';
-    }
-
     return NextResponse.json({
       id: user.id,
       username: user.username,
       role: user.role,
-      redirect: redirectUrl,
+      redirect: '/select-site',
     });
   } catch (error) {
     console.error('🔥 Auth error:', error);

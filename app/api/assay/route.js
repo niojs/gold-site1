@@ -17,10 +17,19 @@ export async function GET() {
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    const result = await query('SELECT * FROM assay_data ORDER BY created_at DESC');
+    const result = await query(
+      `SELECT a.*, u.username as creator_name
+       FROM assay_data a LEFT JOIN users u ON a.created_by = u.id
+       ORDER BY a.created_at DESC`
+    );
     records = result.rows;
   } else if (role === 'sampler') {
-    const result = await query('SELECT * FROM assay_data WHERE user_id = $1 ORDER BY created_at DESC', [sessionId]);
+    const result = await query(
+      `SELECT a.*, u.username as creator_name
+       FROM assay_data a LEFT JOIN users u ON a.created_by = u.id
+       WHERE a.user_id = $1 ORDER BY a.created_at DESC`,
+      [sessionId]
+    );
     records = result.rows;
   }
 
@@ -42,7 +51,7 @@ export async function POST(request) {
   }
 
   try {
-    const { holeNumber, interval, reserves, marks, sampleWeight } = await request.json();
+    const { holeNumber, interval, reserves, marks, sampleWeight, site } = await request.json();
 
     if (!holeNumber || !interval || reserves === undefined || !sampleWeight) {
       return NextResponse.json({ error: 'Скважина, интервал, запасы и вес пробы обязательны' }, { status: 400 });
@@ -52,9 +61,9 @@ export async function POST(request) {
     const created_at = new Date().toISOString();
 
     await query(
-      `INSERT INTO assay_data (id, user_id, hole_number, interval, reserves, marks, sample_weight, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [id, sessionId, holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), created_at]
+      `INSERT INTO assay_data (id, user_id, hole_number, interval, reserves, marks, sample_weight, created_at, created_by, site)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [id, sessionId, holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), created_at, sessionId, site || null]
     );
 
     return NextResponse.json({ success: true });
@@ -79,7 +88,7 @@ export async function PUT(request) {
   }
 
   try {
-    const { id, holeNumber, interval, reserves, marks, sampleWeight } = await request.json();
+    const { id, holeNumber, interval, reserves, marks, sampleWeight, site } = await request.json();
 
     if (!id || !holeNumber || !interval || reserves === undefined || !sampleWeight) {
       return NextResponse.json({ error: 'Все обязательные поля должны быть заполнены' }, { status: 400 });
@@ -91,10 +100,11 @@ export async function PUT(request) {
         interval = $2,
         reserves = $3,
         marks = $4,
-        sample_weight = $5
-      WHERE id = $6
+        sample_weight = $5,
+        site = $6
+      WHERE id = $7
     `;
-    const params = [holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), id];
+    const params = [holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), site || null, id];
 
     if (user?.role !== 'admin') {
       queryText += ' AND user_id = $7';
@@ -129,14 +139,15 @@ export async function DELETE(request) {
   }
 
   try {
-    const { id } = await request.json();
+    const body = await request.json();
+    const ids = Array.isArray(body.id) ? body.id : [body.id];
 
-    if (!id) {
+    if (!ids.length) {
       return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
-    let queryText = 'DELETE FROM assay_data WHERE id = $1';
-    const params = [id];
+    let queryText = `DELETE FROM assay_data WHERE id IN (${ids.map((_, i) => `$${i + 1}`).join(',')})`;
+    const params = [...ids];
 
     if (user?.role !== 'admin') {
       queryText += ' AND user_id = $2';

@@ -58,15 +58,16 @@ export default function ImportExportPage() {
       </h1>
 
       {/* ЭКСПОРТ */}
-      <div className="card">
-        <h2 className="card-title">📥 Экспорт данных</h2>
-        <p className="card-hint">Выберите таблицу и формат для скачивания</p>
+      <div className="gold-card">
+        <h2 style={{ color: '#d4af37', marginBottom: '0.4rem', fontSize: '1.15rem' }}>Экспорт данных</h2>
+        <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 1.2rem' }}>Выберите таблицу и формат для скачивания</p>
 
-        <label className="lbl">Таблица</label>
+        <label style={{ display: 'block', color: '#a89a7e', fontSize: '0.78rem', marginBottom: '0.4rem', letterSpacing: '0.5px' }}>Таблица</label>
         <select
-          className="inp"
+          className="input-gold"
           value={selectedTable}
           onChange={(e) => setSelectedTable(e.target.value)}
+          style={{ cursor: 'pointer' }}
         >
           <option value="all">📁 Все таблицы</option>
           <option value="drilling">🔧 Буровые работы</option>
@@ -76,22 +77,29 @@ export default function ImportExportPage() {
         </select>
 
         <div className="btn-row">
-          <button className="btn-primary" onClick={() => handleExport('xlsx')}>
-            📊 Скачать Excel
+          <button className="btn-gold" onClick={() => handleExport('xlsx')} style={{ flex: 1, minWidth: 140 }}>
+            Скачать Excel
           </button>
-          <button className="btn-secondary" onClick={() => handleExport('csv')}>
-            📄 Скачать CSV
+          <button className="btn-outline-gold" onClick={() => handleExport('csv')} style={{ flex: 1, minWidth: 140 }}>
+            Скачать CSV
           </button>
         </div>
       </div>
 
       {/* ИМПОРТ */}
-      <div className="card">
-        <h2 className="card-title">📤 Импорт данных</h2>
-        <p className="card-hint">Загрузите файл Excel (.xlsx) или CSV</p>
+      <div className="gold-card">
+        <h2 style={{ color: '#d4af37', marginBottom: '0.4rem', fontSize: '1.15rem' }}>Импорт данных</h2>
+        <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 1.2rem' }}>Загрузите файл Excel (.xlsx) или CSV</p>
 
         <form onSubmit={handleImport}>
-          <label className="file-drop">
+          <label style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem',
+            padding: '2rem', border: '2px dashed rgba(212,175,55,0.3)', borderRadius: 12,
+            cursor: 'pointer', transition: 'all 0.25s', marginBottom: '0.5rem',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#d4af37'; e.currentTarget.style.background = 'rgba(212,175,55,0.05)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)'; e.currentTarget.style.background = 'transparent'; }}
+          >
             <input
               type="file"
               name="file"
@@ -100,14 +108,14 @@ export default function ImportExportPage() {
               onChange={(e) => setFileName(e.target.files[0]?.name || '')}
               style={{ display: 'none' }}
             />
-            <span className="file-icon">📁</span>
-            <span className="file-text">
+            <span style={{ fontSize: '2rem' }}>📁</span>
+            <span style={{ color: '#c0b89a', fontSize: '0.9rem', textAlign: 'center' }}>
               {fileName || 'Нажмите, чтобы выбрать файл'}
             </span>
           </label>
 
-          <button className="btn-primary full" type="submit" disabled={loading}>
-            {loading ? '⏳ Загрузка...' : '⬆️ Загрузить'}
+          <button className="btn-gold" type="submit" disabled={loading} style={{ width: '100%', marginTop: '1rem' }}>
+            {loading ? 'Загрузка...' : 'Загрузить'}
           </button>
         </form>
 

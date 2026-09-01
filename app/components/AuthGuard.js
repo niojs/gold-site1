@@ -26,7 +26,7 @@ export default function AuthGuard({ children }) {
       }
     };
 
-    if (pathname === '/') {
+    if (pathname === '/' || pathname === '/select-site') {
       setIsLoading(false);
       return;
     }
@@ -38,7 +38,7 @@ export default function AuthGuard({ children }) {
     return <div style={{ color: '#d4af37', textAlign: 'center', marginTop: '2rem' }}>Загрузка...</div>;
   }
 
-  if (pathname === '/') {
+  if (pathname === '/' || pathname === '/select-site') {
     return children;
   }
 

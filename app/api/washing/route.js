@@ -17,10 +17,19 @@ export async function GET() {
   let records = [];
 
   if (role === 'admin' || role === 'chief_geologist') {
-    const result = await query('SELECT * FROM washing_data ORDER BY created_at DESC');
+    const result = await query(
+      `SELECT w.*, u.username as creator_name
+       FROM washing_data w LEFT JOIN users u ON w.created_by = u.id
+       ORDER BY w.created_at DESC`
+    );
     records = result.rows;
   } else if (role === 'washer') {
-    const result = await query('SELECT * FROM washing_data WHERE user_id = $1 ORDER BY created_at DESC', [sessionId]);
+    const result = await query(
+      `SELECT w.*, u.username as creator_name
+       FROM washing_data w LEFT JOIN users u ON w.created_by = u.id
+       WHERE w.user_id = $1 ORDER BY w.created_at DESC`,
+      [sessionId]
+    );
     records = result.rows;
   }
 
@@ -42,7 +51,7 @@ export async function POST(request) {
   }
 
   try {
-    const { holeNumber, interval, mass, volume, visualDescription } = await request.json();
+    const { holeNumber, interval, mass, volume, visualDescription, site } = await request.json();
 
     if (!holeNumber || !interval || !mass || !volume) {
       return NextResponse.json({ error: 'Номер скважины, интервал, масса и объём обязательны' }, { status: 400 });
@@ -52,9 +61,9 @@ export async function POST(request) {
     const created_at = new Date().toISOString();
 
     await query(
-      `INSERT INTO washing_data (id, user_id, hole_number, interval, mass, volume, visual_description, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [id, sessionId, holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', created_at]
+      `INSERT INTO washing_data (id, user_id, hole_number, interval, mass, volume, visual_description, created_at, created_by, site)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [id, sessionId, holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', created_at, sessionId, site || null]
     );
 
     return NextResponse.json({ success: true });
@@ -79,7 +88,7 @@ export async function PUT(request) {
   }
 
   try {
-    const { id, holeNumber, interval, mass, volume, visualDescription } = await request.json();
+    const { id, holeNumber, interval, mass, volume, visualDescription, site } = await request.json();
 
     if (!id || !holeNumber || !interval || !mass || !volume) {
       return NextResponse.json({ error: 'Все обязательные поля должны быть заполнены' }, { status: 400 });
@@ -91,10 +100,11 @@ export async function PUT(request) {
         interval = $2,
         mass = $3,
         volume = $4,
-        visual_description = $5
-      WHERE id = $6
+        visual_description = $5,
+        site = $6
+      WHERE id = $7
     `;
-    const params = [holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', id];
+    const params = [holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', site || null, id];
 
     if (user?.role !== 'admin') {
       queryText += ' AND user_id = $7';
@@ -129,14 +139,15 @@ export async function DELETE(request) {
   }
 
   try {
-    const { id } = await request.json();
+    const body = await request.json();
+    const ids = Array.isArray(body.id) ? body.id : [body.id];
 
-    if (!id) {
+    if (!ids.length) {
       return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
-    let queryText = 'DELETE FROM washing_data WHERE id = $1';
-    const params = [id];
+    let queryText = `DELETE FROM washing_data WHERE id IN (${ids.map((_, i) => `$${i + 1}`).join(',')})`;
+    const params = [...ids];
 
     if (user?.role !== 'admin') {
       queryText += ' AND user_id = $2';
