@@ -37,18 +37,19 @@ export async function POST(request) {
   }
 
   const body = await request.json();
-  const { lineName, latitude, longitude, elevation, workArea, holeNumber, diameter, intervals } = body;
+  const { lineName, latitude, longitude, elevation, workArea, holeNumber, diameter, intervals, coord_system } = body;
 
   if (!workArea || !holeNumber) {
     return NextResponse.json({ error: 'Участок и номер скважины обязательны' }, { status: 400 });
   }
 
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const cs = coord_system || 'WGS-84';
 
   await query(
-    `INSERT INTO primary_survey_data (id, user_id, line_name, latitude, longitude, elevation, work_area, hole_number, diameter, intervals, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-    [id, user.id, lineName || null, latitude || null, longitude || null, elevation || null, workArea, holeNumber, diameter || null, intervals || null, new Date().toISOString()]
+    `INSERT INTO primary_survey_data (id, user_id, line_name, latitude, longitude, elevation, work_area, hole_number, diameter, intervals, created_at, coord_system)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    [id, user.id, lineName || null, latitude || null, longitude || null, elevation || null, workArea, holeNumber, diameter || null, intervals || null, new Date().toISOString(), cs]
   );
 
   return NextResponse.json({ id, success: true });
@@ -62,13 +63,15 @@ export async function PUT(request) {
   }
 
   const body = await request.json();
-  const { id, lineName, latitude, longitude, elevation, workArea, holeNumber, diameter, intervals } = body;
+  const { id, lineName, latitude, longitude, elevation, workArea, holeNumber, diameter, intervals, coord_system } = body;
 
   if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
+  const cs = coord_system || 'WGS-84';
+
   const result = await query(
-    `UPDATE primary_survey_data SET line_name=$1, latitude=$2, longitude=$3, elevation=$4, work_area=$5, hole_number=$6, diameter=$7, intervals=$8 WHERE id=$9`,
-    [lineName || null, latitude || null, longitude || null, elevation || null, workArea, holeNumber, diameter || null, intervals || null, id]
+    `UPDATE primary_survey_data SET line_name=$1, latitude=$2, longitude=$3, elevation=$4, work_area=$5, hole_number=$6, diameter=$7, intervals=$8, coord_system=$9 WHERE id=$10`,
+    [lineName || null, latitude || null, longitude || null, elevation || null, workArea, holeNumber, diameter || null, intervals || null, cs, id]
   );
 
   if (result.rowCount === 0) {

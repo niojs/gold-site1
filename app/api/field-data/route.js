@@ -66,7 +66,7 @@ export async function POST(request) {
     const {
       holeNumber, coordinates, lineHeight, intervals,
       geologicalDescription, ugv, date, time, site,
-      diameter, coreRecovery, brigade,
+      diameter, coreRecovery, brigade, coord_system,
     } = await request.json();
 
     if (!holeNumber || !coordinates || !site) {
@@ -75,19 +75,20 @@ export async function POST(request) {
 
     const id = Date.now().toString();
     const created_at = new Date().toISOString();
+    const cs = coord_system || 'WGS-84';
 
     await query(
       `INSERT INTO field_data (
         id, user_id, hole_number, coordinates, line_height, intervals,
-        geological_description, ugv, date, time, site, diameter, core_recovery, created_at, created_by, brigade
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        geological_description, ugv, date, time, site, diameter, core_recovery, created_at, created_by, brigade, coord_system
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
       [
         id, sessionId, holeNumber, coordinates,
         parseFloat(lineHeight) || 0, intervals || '',
         geologicalDescription || '', parseFloat(ugv) || 0,
         date || '', time || '', site,
         parseFloat(diameter) || 0, parseFloat(coreRecovery) || 0,
-        created_at, sessionId, brigade || null,
+        created_at, sessionId, brigade || null, cs,
       ]
     );
 
@@ -116,25 +117,27 @@ export async function PUT(request) {
     const {
       id, holeNumber, coordinates, lineHeight, intervals,
       geologicalDescription, ugv, date, time, site,
-      diameter, coreRecovery, brigade,
+      diameter, coreRecovery, brigade, coord_system,
     } = await request.json();
 
     if (!id || !holeNumber || !coordinates || !site) {
       return NextResponse.json({ error: 'Все обязательные поля должны быть заполнены' }, { status: 400 });
     }
 
+    const cs = coord_system || 'WGS-84';
+
     let queryText = `
       UPDATE field_data SET
         hole_number = $1, coordinates = $2, line_height = $3, intervals = $4,
         geological_description = $5, ugv = $6, date = $7, time = $8,
-        site = $9, diameter = $10, core_recovery = $11, brigade = $12
-      WHERE id = $13
+        site = $9, diameter = $10, core_recovery = $11, brigade = $12, coord_system = $13
+      WHERE id = $14
     `;
     const params = [
       holeNumber, coordinates, parseFloat(lineHeight) || 0,
       intervals || '', geologicalDescription || '', parseFloat(ugv) || 0,
       date || '', time || '', site, parseFloat(diameter) || 0,
-      parseFloat(coreRecovery) || 0, brigade || null, id,
+      parseFloat(coreRecovery) || 0, brigade || null, cs, id,
     ];
 
     if (user?.role !== 'admin') {

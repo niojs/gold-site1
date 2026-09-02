@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import proj4 from 'proj4';
+import { toWgs84, fromWgs84, parseCoords, coordsToString, COORD_SYSTEMS, detectSystem } from '../../lib/coordinates';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -11,13 +11,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
-
-const projections = {
-  'WGS-84': '+proj=longlat +datum=WGS84 +no_defs',
-  'МСК-02': '+proj=tmerc +lat_0=0 +lon_0=30 +k=1 +x_0=0 +y_0=0 +ellps=krass +towgs84=23.92,-141.27,-80.9,0,0,0,0 +units=m +no_defs',
-  'МСК-74': '+proj=tmerc +lat_0=0 +lon_0=74 +k=1 +x_0=0 +y_0=0 +ellps=krass +towgs84=23.92,-141.27,-80.9,0,0,0,0 +units=m +no_defs',
-  'ГСК-2011': '+proj=tmerc +lat_0=0 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=GSK2011 +units=m +no_defs',
-};
 
 const QUEUE_COLORS = {
   1: '#2ecc71',
@@ -37,59 +30,79 @@ function getPointColor(point) {
   return QUEUE_COLORS.default;
 }
 
-// 🔧 УМНЫЙ РАЗБОР КООРДИНАТ — понимает разные форматы
-function parseCoords(raw) {
-  if (!raw) return null;
-  let s = String(raw).trim();
-  if (!s) return null;
+function getWgs84Coords(point) {
+  const system = point.coord_system || 'WGS-84';
 
-  const commaCount = (s.match(/,/g) || []).length;
-  const hasSpace = /\s/.test(s);
+  const trueCoords = point.true_coordinates || '';
+  const projCoords = point.project_coordinates || '';
+  const legacyCoords = point.coordinates || '';
 
-  // Формат "54,123 58,456" — запятая-дробь, пробел-разделитель
-  if (hasSpace && (commaCount === 0 || commaCount === 2)) {
-    const parts = s.split(/\s+/).map((p) => Number(p.replace(',', '.')));
-    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+  const coordStr = trueCoords || projCoords || legacyCoords;
+  if (!coordStr) return null;
+
+  const parsed = parseCoords(coordStr);
+  if (!parsed) return null;
+
+  if (system === 'WGS-84') {
+    return { lat: parsed[0], lng: parsed[1], displaySystem: system };
   }
 
-  // Формат "54.123, 58.456" — точка-дробь, запятая-разделитель (стандарт)
-  if (commaCount === 1) {
-    const parts = s.split(',').map((p) => Number(p.trim()));
-    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
+  const wgs = toWgs84(system, parsed);
+  if (wgs) {
+    return { lat: wgs[1], lng: wgs[0], displaySystem: system };
   }
 
-  // Формат "54,123, 58,456" — запятая-дробь И запятая-разделитель
-  if (commaCount === 3) {
-    const m = s.match(/^\s*(-?\d+),(\d+)\s*,\s*(-?\d+),(\d+)\s*$/);
-    if (m) {
-      const lat = Number(`${m[1]}.${m[2]}`);
-      const lng = Number(`${m[3]}.${m[4]}`);
-      if (!isNaN(lat) && !isNaN(lng)) return [lat, lng];
+  return { lat: parsed[0], lng: parsed[1], displaySystem: 'WGS-84 (fallback)' };
+}
+
+function getAllCoordDisplays(point) {
+  const displays = [];
+  const system = point.coord_system || 'WGS-84';
+
+  const trueCoords = point.true_coordinates || '';
+  const projCoords = point.project_coordinates || '';
+  const legacyCoords = point.coordinates || '';
+
+  const mainStr = trueCoords || projCoords || legacyCoords;
+  if (!mainStr) return displays;
+
+  const parsed = parseCoords(mainStr);
+  if (!parsed) return displays;
+
+  if (system === 'WGS-84') {
+    displays.push({ system: 'WGS-84', value: coordsToString(parsed[0], parsed[1], 6) });
+    for (const sys of COORD_SYSTEMS) {
+      if (sys === 'WGS-84') continue;
+      const converted = fromWgs84(sys, [parsed[0], parsed[1]]);
+      if (converted) {
+        displays.push({ system: sys, value: coordsToString(converted[0], converted[1], 2) });
+      }
+    }
+  } else {
+    displays.push({ system, value: coordsToString(parsed[0], parsed[1], 2) });
+    const wgs = toWgs84(system, parsed);
+    if (wgs) {
+      displays.push({ system: 'WGS-84', value: coordsToString(wgs[1], wgs[0], 6) });
+      for (const sys of COORD_SYSTEMS) {
+        if (sys === 'WGS-84' || sys === system) continue;
+        const converted = fromWgs84(sys, wgs);
+        if (converted) {
+          displays.push({ system: sys, value: coordsToString(converted[0], converted[1], 2) });
+        }
+      }
     }
   }
 
-  // Формат с точкой-запятой "54.123; 58.456"
-  if (s.includes(';')) {
-    const parts = s.split(';').map((p) => Number(p.trim().replace(',', '.')));
-    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
-  }
-
-  // Последняя попытка — стандартный split
-  const parts = s.split(',').map((p) => Number(p.trim()));
-  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts;
-
-  console.warn('Не удалось разобрать координаты:', raw);
-  return null;
+  return displays;
 }
 
 export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const markersRef = useRef([]);
-  const [selectedCoordSystem, setSelectedCoordSystem] = useState('WGS-84');
+  const [displaySystem, setDisplaySystem] = useState('WGS-84');
   const [activeLayer, setActiveLayer] = useState('all');
 
-  // Инициализация карты + ПОЧИНКА серого экрана
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -135,7 +148,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
     };
   }, [points, onEdit, onDelete]);
 
-  // Обновление маркеров
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -149,85 +161,81 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
     }
 
     filteredPoints.forEach((point) => {
-      const coordSource =
-        point.true_coordinates || point.project_coordinates || point.coordinates;
-      const coords = parseCoords(coordSource);
+      const wgs = getWgs84Coords(point);
+      if (!wgs) return;
 
-      if (coords) {
-        let lat = coords[0];
-        let lng = coords[1];
+      let lat = wgs.lat;
+      let lng = wgs.lng;
 
-        if (selectedCoordSystem !== 'WGS-84') {
-          try {
-            const proj = proj4(projections['WGS-84'], projections[selectedCoordSystem]);
-            const result = proj.forward([lng, lat]);
-            lng = result[0];
-            lat = result[1];
-          } catch (e) {
-            console.error('Ошибка преобразования:', e);
-          }
+      if (displaySystem !== 'WGS-84') {
+        const converted = fromWgs84(displaySystem, [lng, lat]);
+        if (converted) {
+          lat = converted[1];
+          lng = converted[0];
         }
-
-        const color = getPointColor(point);
-        const isDrilled = point.is_drilled;
-
-        const marker = L.marker([lat, lng]).addTo(map);
-        marker.setIcon(
-          L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="marker-dot ${isDrilled ? 'marker-pulse' : ''}" style="background-color: ${color};"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          })
-        );
-
-        let statusText = '';
-        if (point.type === 'drilling') {
-          if (isDrilled) statusText = '🔴 Пробурена';
-          else if (point.queue) statusText = `${point.queue}-я очередь`;
-        } else {
-          statusText = 'Полевая точка';
-        }
-
-        const buttonsHtml = canEdit
-          ? `<div class="popup-actions">
-               <button onclick="window._mapEditPoint('${point.id}')" class="popup-btn edit">✏️ Изменить</button>
-               <button onclick="window._mapDeletePoint('${point.id}')" class="popup-btn delete">🗑️ Удалить</button>
-             </div>`
-          : '';
-
-                marker.bindPopup(`
-          <div class="gold-popup">
-            <div class="popup-title">${point.name || 'Без названия'}</div>
-            <div class="popup-row"><span>Скважина:</span> ${point.hole_number || '—'}</div>
-            <div class="popup-row"><span>Статус:</span> ${statusText || '—'}</div>
-            <div class="popup-row"><span>Дата:</span> ${point.date || '—'}</div>
-            <div class="popup-row"><span>Координаты:</span></div>
-            <div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
-            <div class="popup-sys">(${selectedCoordSystem})</div>
-            ${buttonsHtml}
-          </div>
-        `, { className: 'gold-popup-wrapper' });
-
-        markersRef.current.push(marker);
       }
+
+      const color = getPointColor(point);
+      const isDrilled = point.is_drilled;
+
+      const marker = L.marker([lat, lng]).addTo(map);
+      marker.setIcon(
+        L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="marker-dot ${isDrilled ? 'marker-pulse' : ''}" style="background-color: ${color};"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        })
+      );
+
+      let statusText = '';
+      if (point.type === 'drilling') {
+        if (isDrilled) statusText = 'Пробурена';
+        else if (point.queue) statusText = `${point.queue}-я очередь`;
+      } else {
+        statusText = 'Полевая точка';
+      }
+
+      const allCoords = getAllCoordDisplays(point);
+      const coordsHtml = allCoords.length > 0
+        ? allCoords.map(c => `<div class="popup-coord-row"><span class="popup-sys-label">${c.system}:</span> <span class="popup-coord-value">${c.value}</span></div>`).join('')
+        : '<div class="popup-coords">—</div>';
+
+      const buttonsHtml = canEdit
+        ? `<div class="popup-actions">
+             <button onclick="window._mapEditPoint('${point.id}')" class="popup-btn edit">Изменить</button>
+             <button onclick="window._mapDeletePoint('${point.id}')" class="popup-btn delete">Удалить</button>
+           </div>`
+        : '';
+
+      marker.bindPopup(`
+        <div class="gold-popup">
+          <div class="popup-title">${point.name || 'Без названия'}</div>
+          <div class="popup-row"><span>Скважина:</span> ${point.hole_number || '—'}</div>
+          <div class="popup-row"><span>Статус:</span> ${statusText || '—'}</div>
+          <div class="popup-row"><span>Дата:</span> ${point.date || '—'}</div>
+          <div class="popup-row"><span>Координаты:</span></div>
+          <div class="popup-coords-block">${coordsHtml}</div>
+          ${buttonsHtml}
+        </div>
+      `, { className: 'gold-popup-wrapper', maxWidth: 320 });
+
+      markersRef.current.push(marker);
     });
-  }, [points, selectedCoordSystem, activeLayer, canEdit]);
+  }, [points, displaySystem, activeLayer, canEdit]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-      {/* Панель управления */}
       <div className="map-control">
         <div>
-          <label>Система координат</label>
+          <label>Отображение координат</label>
           <select
-            value={selectedCoordSystem}
-            onChange={(e) => setSelectedCoordSystem(e.target.value)}
+            value={displaySystem}
+            onChange={(e) => setDisplaySystem(e.target.value)}
           >
-            <option value="WGS-84">WGS-84</option>
-            <option value="МСК-02">МСК-02</option>
-            <option value="МСК-74">МСК-74</option>
-            <option value="ГСК-2011">ГСК-2011</option>
+            {COORD_SYSTEMS.map(sys => (
+              <option key={sys} value={sys}>{sys}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -241,7 +249,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
         </div>
       </div>
 
-      {/* Легенда */}
       <div className="map-legend">
         <div className="legend-title">Очередь бурения</div>
         <LegendItem color={QUEUE_COLORS[1]} label="1-я очередь" />
@@ -361,7 +368,8 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
         }
         .gold-popup-wrapper .leaflet-popup-content {
           margin: 0;
-          min-width: 200px;
+          min-width: 220px;
+          max-width: 320px;
         }
         .gold-popup { padding: 0.4rem 0.2rem; }
         .popup-title {
@@ -378,16 +386,25 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
           margin-bottom: 0.3rem;
         }
         .popup-row span { color: #999; }
-        .popup-coords {
+        .popup-coords-block {
+          margin: 0.3rem 0 0.5rem 0;
+        }
+        .popup-coord-row {
+          display: flex;
+          gap: 0.4rem;
+          font-size: 0.78rem;
+          margin-bottom: 0.15rem;
+          align-items: baseline;
+        }
+        .popup-sys-label {
+          color: #888;
+          min-width: 60px;
+          font-size: 0.7rem;
+        }
+        .popup-coord-value {
           color: #d4af37;
           font-family: monospace;
-          font-size: 0.85rem;
-          margin: 0.2rem 0;
-        }
-        .popup-sys {
-          color: #777;
-          font-size: 0.72rem;
-          margin-bottom: 0.4rem;
+          font-size: 0.8rem;
         }
         .popup-actions {
           display: flex;

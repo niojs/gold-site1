@@ -43,7 +43,14 @@ export async function GET() {
   await addFromTable(`SELECT DISTINCT site_name FROM user_sites WHERE site_name IS NOT NULL AND site_name != ''`, 'site_name');
 
   const allSites = [
-    ...managedRows.map(r => ({ id: r.id, name: r.name, created_at: r.created_at, managed: true })),
+    ...managedRows.map(r => ({
+      id: r.id, name: r.name, created_at: r.created_at, managed: true,
+      coordinates_wgs84: r.coordinates_wgs84 || '',
+      coordinates_msk02: r.coordinates_msk02 || '',
+      coordinates_msk74: r.coordinates_msk74 || '',
+      coordinates_gsk2011: r.coordinates_gsk2011 || '',
+      description: r.description || '',
+    })),
     ...extra.map(name => ({ id: null, name, created_at: null, managed: false })),
   ];
 
@@ -58,7 +65,7 @@ export async function POST(request) {
   }
 
   const body = await request.json();
-  const { name } = body;
+  const { name, coordinates_wgs84, coordinates_msk02, coordinates_msk74, coordinates_gsk2011, description } = body;
 
   if (!name || !name.trim()) {
     return NextResponse.json({ error: 'Название участка обязательно' }, { status: 400 });
@@ -74,8 +81,9 @@ export async function POST(request) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
   await query(
-    `INSERT INTO sites (id, name, created_at) VALUES ($1, $2, $3)`,
-    [id, trimmed, new Date().toISOString()]
+    `INSERT INTO sites (id, name, coordinates_wgs84, coordinates_msk02, coordinates_msk74, coordinates_gsk2011, description, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [id, trimmed, coordinates_wgs84 || null, coordinates_msk02 || null, coordinates_msk74 || null, coordinates_gsk2011 || null, description || null, new Date().toISOString()]
   );
 
   return NextResponse.json({ id, success: true });
@@ -89,7 +97,7 @@ export async function PUT(request) {
   }
 
   const body = await request.json();
-  const { id, name } = body;
+  const { id, name, coordinates_wgs84, coordinates_msk02, coordinates_msk74, coordinates_gsk2011, description } = body;
 
   if (!id || !name || !name.trim()) {
     return NextResponse.json({ error: 'ID и название обязательны' }, { status: 400 });
@@ -102,7 +110,11 @@ export async function PUT(request) {
     return NextResponse.json({ error: 'Участок с таким названием уже существует' }, { status: 409 });
   }
 
-  await query('UPDATE sites SET name = $1 WHERE id = $2', [trimmed, id]);
+  await query(
+    `UPDATE sites SET name = $1, coordinates_wgs84 = $2, coordinates_msk02 = $3,
+     coordinates_msk74 = $4, coordinates_gsk2011 = $5, description = $6 WHERE id = $7`,
+    [trimmed, coordinates_wgs84 || null, coordinates_msk02 || null, coordinates_msk74 || null, coordinates_gsk2011 || null, description || null, id]
+  );
 
   return NextResponse.json({ success: true });
 }
