@@ -16,6 +16,8 @@ export default function FieldDataPage() {
   const [selectedSite, setSelectedSite] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableHoles, setAvailableHoles] = useState([]);
+  const [intervalsByHole, setIntervalsByHole] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -24,13 +26,24 @@ export default function FieldDataPage() {
     setSelectedSite(site);
   }, []);
 
+  useEffect(() => {
+    if (!selectedSite) return;
+    fetch(`/api/holes?site=${encodeURIComponent(selectedSite)}`)
+      .then(r => r.json())
+      .then(data => {
+        setAvailableHoles(data.holes || []);
+        setIntervalsByHole(data.intervalsByHole || {});
+      })
+      .catch(() => {});
+  }, [selectedSite]);
+
   const fetchRecords = async () => {
     try {
       const res = await fetch('/api/field-data', { credentials: 'include' });
       if (!res.ok) { if (res.status === 401) { router.push('/'); return; } }
       const data = await res.json();
       const site = getSelectedSite();
-      const filtered = site ? data.filter(r => r.site === site) : data;
+      const filtered = site ? data.filter(r => (r.site || r.work_area) === site) : data;
       setRecords(filtered);
     } catch (err) { console.error(err); }
   };
@@ -38,10 +51,10 @@ export default function FieldDataPage() {
   useEffect(() => { if (selectedSite) fetchRecords(); }, [selectedSite]);
 
   const columnDefs = [
-    { field: 'holeNumber', headerName: 'Скважина', editable: true },
+    { field: 'holeNumber', headerName: 'Скважина', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: availableHoles }, minWidth: 120 },
     { field: 'coordinates', headerName: 'Координаты', editable: true },
     { field: 'lineHeight', headerName: 'Высота', editable: true, type: 'numericColumn' },
-    { field: 'intervals', headerName: 'Интервалы', editable: true },
+    { field: 'intervals', headerName: 'Интервалы', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: Object.values(intervalsByHole).flat() } },
     { field: 'geologicalDescription', headerName: 'Геология', editable: true },
     { field: 'ugv', headerName: 'УГВ', editable: true, type: 'numericColumn' },
     { field: 'diameter', headerName: 'Диаметр', editable: true, type: 'numericColumn' },
@@ -160,6 +173,7 @@ export default function FieldDataPage() {
       date: '',
       time: '',
       brigade: '',
+      site: getSelectedSite(),
       creatorName: '',
     };
     setRecords(prev => [newRow, ...prev]);

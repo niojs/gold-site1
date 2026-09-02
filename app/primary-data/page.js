@@ -3,6 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import GoldGrid from '../components/GoldGrid';
 
+function getSelectedSite() {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/selected_site=([^;]+)/);
+  const val = match ? decodeURIComponent(match[1]) : null;
+  return val === '__none__' ? null : val;
+}
+
 export default function PrimaryDataPage() {
   const [records, setRecords] = useState([]);
   const [sitesList, setSitesList] = useState([]);
@@ -147,7 +154,7 @@ export default function PrimaryDataPage() {
   async function handleAddRow() {
     const newRow = {
       id: `temp-${Date.now()}`,
-      work_area: '',
+      work_area: getSelectedSite(),
       line_name: '',
       latitude: null,
       longitude: null,
@@ -270,14 +277,14 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: 'Скважина', field: 'hole_number', editable: true, minWidth: 120 },
+    { headerName: 'Скважина', field: 'hole_number', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
     { headerName: 'Участок', field: 'work_area', editable: true, minWidth: 120 },
     { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 100 },
     { headerName: 'Широта', field: 'latitude', editable: true, type: 'numericColumn', minWidth: 100 },
     { headerName: 'Долгота', field: 'longitude', editable: true, type: 'numericColumn', minWidth: 100 },
     { headerName: 'Высота', field: 'elevation', editable: true, type: 'numericColumn', minWidth: 90 },
     { headerName: 'Диаметр', field: 'diameter', editable: true, minWidth: 100 },
-    { headerName: 'Интервалы', field: 'intervals', editable: true, minWidth: 140 },
+    { headerName: 'Интервалы', field: 'intervals', editable: true, minWidth: 140, cellEditor: 'agLargeTextCellEditor', cellEditorPopup: true },
     { headerName: 'Создал', field: 'creator_name', editable: false, minWidth: 120 },
   ];
 

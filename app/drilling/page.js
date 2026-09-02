@@ -16,6 +16,8 @@ export default function DrillingPage() {
   const [selectedSite, setSelectedSite] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableHoles, setAvailableHoles] = useState([]);
+  const [intervalsByHole, setIntervalsByHole] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +25,17 @@ export default function DrillingPage() {
     if (!site) { router.push('/select-site'); return; }
     setSelectedSite(site);
   }, []);
+
+  useEffect(() => {
+    if (!selectedSite) return;
+    fetch(`/api/holes?site=${encodeURIComponent(selectedSite)}`)
+      .then(r => r.json())
+      .then(data => {
+        setAvailableHoles(data.holes || []);
+        setIntervalsByHole(data.intervalsByHole || {});
+      })
+      .catch(() => {});
+  }, [selectedSite]);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -40,7 +53,7 @@ export default function DrillingPage() {
   const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
 
   const columnDefs = [
-    { headerName: 'Скважина', field: 'holeNumber', editable: true },
+    { headerName: 'Скважина', field: 'holeNumber', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: availableHoles }, minWidth: 140 },
     { headerName: 'Участок', field: 'site', editable: false },
     { headerName: 'Очередь', field: 'queue', editable: true, type: 'numericColumn' },
     { headerName: 'Пробурена', field: 'isDrilled', editable: true, cellEditor: 'agSelectCellEditor',
@@ -125,7 +138,7 @@ export default function DrillingPage() {
       {
         id: 'new_' + Date.now(),
         holeNumber: '',
-        site: selectedSite,
+        site: getSelectedSite(),
         queue: '',
         isDrilled: 'Нет',
         diameter: '',

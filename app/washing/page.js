@@ -16,6 +16,8 @@ export default function WashingPage() {
   const [selectedSite, setSelectedSite] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableHoles, setAvailableHoles] = useState([]);
+  const [intervalsByHole, setIntervalsByHole] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +25,17 @@ export default function WashingPage() {
     if (!site) { router.push('/select-site'); return; }
     setSelectedSite(site);
   }, []);
+
+  useEffect(() => {
+    if (!selectedSite) return;
+    fetch(`/api/holes?site=${encodeURIComponent(selectedSite)}`)
+      .then(r => r.json())
+      .then(data => {
+        setAvailableHoles(data.holes || []);
+        setIntervalsByHole(data.intervalsByHole || {});
+      })
+      .catch(() => {});
+  }, [selectedSite]);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -40,8 +53,8 @@ export default function WashingPage() {
   const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
 
   const columnDefs = [
-    { headerName: 'Номер скважины', field: 'holeNumber', editable: true },
-    { headerName: 'Интервал', field: 'interval', editable: true },
+    { headerName: 'Номер скважины', field: 'holeNumber', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: availableHoles }, minWidth: 140 },
+    { headerName: 'Интервал', field: 'interval', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: Object.values(intervalsByHole).flat() } },
     { headerName: 'Масса (кг)', field: 'mass', editable: true, type: 'numericColumn' },
     { headerName: 'Объём (л)', field: 'volume', editable: true, type: 'numericColumn' },
     { headerName: 'Плотность (кг/л)', field: 'density', editable: false, type: 'numericColumn',
@@ -112,7 +125,7 @@ export default function WashingPage() {
 
   const onAddRow = useCallback(() => {
     setRecords(prev => [
-      { id: 'new_' + Date.now(), holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '', site: selectedSite, creatorName: '' },
+      { id: 'new_' + Date.now(), holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '', site: getSelectedSite(), creatorName: '' },
       ...prev,
     ]);
   }, [selectedSite]);

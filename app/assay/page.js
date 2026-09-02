@@ -16,6 +16,8 @@ export default function AssayPage() {
   const [selectedSite, setSelectedSite] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableHoles, setAvailableHoles] = useState([]);
+  const [intervalsByHole, setIntervalsByHole] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +25,17 @@ export default function AssayPage() {
     if (!site) { router.push('/select-site'); return; }
     setSelectedSite(site);
   }, []);
+
+  useEffect(() => {
+    if (!selectedSite) return;
+    fetch(`/api/holes?site=${encodeURIComponent(selectedSite)}`)
+      .then(r => r.json())
+      .then(data => {
+        setAvailableHoles(data.holes || []);
+        setIntervalsByHole(data.intervalsByHole || {});
+      })
+      .catch(() => {});
+  }, [selectedSite]);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -40,8 +53,8 @@ export default function AssayPage() {
   const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
 
   const columnDefs = [
-    { headerName: 'Скважина', field: 'holeNumber', editable: true },
-    { headerName: 'Интервал', field: 'interval', editable: true },
+    { headerName: 'Скважина', field: 'holeNumber', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: availableHoles }, minWidth: 140 },
+    { headerName: 'Интервал', field: 'interval', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: Object.values(intervalsByHole).flat() } },
     { headerName: 'Запасы (т)', field: 'reserves', editable: true, type: 'numericColumn' },
     { headerName: 'Отметки', field: 'marks', editable: true },
     { headerName: 'Вес пробы (кг)', field: 'sampleWeight', editable: true, type: 'numericColumn' },
@@ -104,7 +117,7 @@ export default function AssayPage() {
 
   const onAddRow = useCallback(() => {
     setRecords(prev => [
-      { id: 'new_' + Date.now(), holeNumber: '', interval: '', reserves: '', marks: '', sampleWeight: '', site: selectedSite, creatorName: '' },
+      { id: 'new_' + Date.now(), holeNumber: '', interval: '', reserves: '', marks: '', sampleWeight: '', site: getSelectedSite(), creatorName: '' },
       ...prev,
     ]);
   }, [selectedSite]);
