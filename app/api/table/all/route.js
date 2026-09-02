@@ -38,6 +38,7 @@ export async function GET() {
     let fieldSql = 'SELECT * FROM field_data';
     let washingSql = 'SELECT * FROM washing_data';
     let assaySql = 'SELECT * FROM assay_data';
+    let primarySql = 'SELECT * FROM primary_survey_data';
     const params = [];
 
     if (useSiteFilter) {
@@ -45,6 +46,7 @@ export async function GET() {
       fieldSql += ' WHERE site = $1';
       washingSql += ' WHERE site = $1';
       assaySql += ' WHERE site = $1';
+      primarySql += ' WHERE work_area = $1';
       params.push(siteFilter);
     }
 
@@ -52,17 +54,20 @@ export async function GET() {
     fieldSql += ' ORDER BY created_at DESC';
     washingSql += ' ORDER BY created_at DESC';
     assaySql += ' ORDER BY created_at DESC';
+    primarySql += ' ORDER BY created_at DESC';
 
     const drillingResult = await query(drillingSql, params);
     const fieldResult = await query(fieldSql, params);
     const washingResult = await query(washingSql, params);
     const assayResult = await query(assaySql, params);
+    const primaryResult = await query(primarySql, params);
 
     return NextResponse.json({
       drilling: drillingResult.rows,
       field: fieldResult.rows,
       washing: washingResult.rows,
       assay: assayResult.rows,
+      primary: primaryResult.rows,
     });
   } catch (error) {
     console.error('Ошибка загрузки всех данных:', error);
@@ -163,6 +168,25 @@ export async function PUT(request) {
           record.id,
         ]
       );
+    } else if (type === 'primary') {
+      result = await query(
+        `UPDATE primary_survey_data SET
+          hole_number = $1, work_area = $2, line_name = $3,
+          latitude = $4, longitude = $5, elevation = $6,
+          diameter = $7, intervals = $8
+         WHERE id = $9`,
+        [
+          record.hole_number,
+          record.work_area,
+          record.line_name || '',
+          parseFloat(record.latitude) || 0,
+          parseFloat(record.longitude) || 0,
+          parseFloat(record.elevation) || 0,
+          parseFloat(record.diameter) || 0,
+          record.intervals || '',
+          record.id,
+        ]
+      );
     } else {
       return NextResponse.json({ error: 'Неизвестный тип данных' }, { status: 400 });
     }
@@ -197,6 +221,7 @@ export async function DELETE(request) {
       field: 'field_data',
       washing: 'washing_data',
       assay: 'assay_data',
+      primary: 'primary_survey_data',
     };
 
     const tableName = tables[type];

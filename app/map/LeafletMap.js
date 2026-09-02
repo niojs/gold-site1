@@ -22,6 +22,7 @@ const QUEUE_COLORS = {
 };
 
 function getPointColor(point) {
+  if (point.type === 'primary') return '#e6a817';
   if (point.type !== 'drilling') return QUEUE_COLORS.field;
   if (point.is_drilled) return QUEUE_COLORS.drilled;
   if (point.queue === 1) return QUEUE_COLORS[1];
@@ -189,7 +190,9 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
       );
 
       let statusText = '';
-      if (point.type === 'drilling') {
+      if (point.type === 'primary') {
+        statusText = 'Первичные данные';
+      } else if (point.type === 'drilling') {
         if (isDrilled) statusText = 'Пробурена';
         else if (point.queue) statusText = `${point.queue}-я очередь`;
       } else {
@@ -245,6 +248,7 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
             <option value="Скважина">Скважины</option>
             <option value="Участок">Участки</option>
             <option value="Проба">Пробы</option>
+            <option value="Первичные">Первичные данные</option>
           </select>
         </div>
       </div>

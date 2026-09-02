@@ -54,7 +54,22 @@ export async function GET() {
     }
     const fieldResult = await query(fieldSql, fieldParams);
 
-    const allPoints = [...drillingResult.rows, ...fieldResult.rows];
+    let primarySql = `
+      SELECT
+        id, work_area as site, work_area as name, hole_number,
+        CONCAT(latitude, ', ', longitude) as coordinates,
+        latitude, longitude, elevation, line_name,
+        'primary' as type, 'Первичные' as layer
+      FROM primary_survey_data
+      WHERE latitude IS NOT NULL AND longitude IS NOT NULL`;
+    const primaryParams = [];
+    if (useSiteFilter) {
+      primarySql += ` AND work_area = $1`;
+      primaryParams.push(siteFilter);
+    }
+    const primaryResult = await query(primarySql, primaryParams);
+
+    const allPoints = [...drillingResult.rows, ...fieldResult.rows, ...primaryResult.rows];
     return NextResponse.json({
       points: allPoints,
       currentUser: { id: user.id, role: user.role, canEdit: CAN_EDIT.includes(user.role) },

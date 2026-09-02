@@ -11,8 +11,8 @@ function getSelectedSite() {
 }
 
 export default function AllDataPage() {
-  const [rawData, setRawData] = useState({ drilling: [], field: [], washing: [], assay: [] });
-  const [data, setData] = useState({ drilling: [], field: [], washing: [], assay: [] });
+  const [rawData, setRawData] = useState({ drilling: [], field: [], washing: [], assay: [], primary: [] });
+  const [data, setData] = useState({ drilling: [], field: [], washing: [], assay: [], primary: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -36,6 +36,7 @@ export default function AllDataPage() {
       field: (raw.field || []).filter(r => (r.site || '') === site),
       washing: (raw.washing || []).filter(r => (r.site || '') === site),
       assay: (raw.assay || []).filter(r => (r.site || '') === site),
+      primary: (raw.primary || []).filter(r => (r.work_area || '') === site),
     };
   };
 
@@ -135,6 +136,16 @@ export default function AllDataPage() {
       { key: 'marks', label: 'Отметки', type: 'text' },
       { key: 'sample_weight', label: 'Вес пробы', type: 'number' },
     ],
+    primary: [
+      { key: 'hole_number', label: 'Скважина', type: 'text' },
+      { key: 'work_area', label: 'Участок', type: 'text' },
+      { key: 'line_name', label: 'Линия', type: 'text' },
+      { key: 'latitude', label: 'Широта', type: 'number' },
+      { key: 'longitude', label: 'Долгота', type: 'number' },
+      { key: 'elevation', label: 'Высота', type: 'number' },
+      { key: 'diameter', label: 'Диаметр (мм)', type: 'number' },
+      { key: 'intervals', label: 'Интервалы', type: 'text' },
+    ],
   };
 
   const typeMeta = {
@@ -142,6 +153,7 @@ export default function AllDataPage() {
     field: { label: 'Полевые данные', color: '#70ad47' },
     washing: { label: 'Отдел промывки', color: '#4dd0c4' },
     assay: { label: 'Отдел проб', color: '#d67ab1' },
+    primary: { label: 'Первичные данные', color: '#e6a817' },
   };
 
   const cellRows = (type, rec) => {
@@ -182,6 +194,16 @@ export default function AllDataPage() {
         ['Вес пробы', rec.sample_weight],
         ['Создал', rec.creator_name || '—'],
       ],
+      primary: [
+        ['Участок', rec.work_area],
+        ['Линия', rec.line_name || '—'],
+        ['Широта', rec.latitude || '—'],
+        ['Долгота', rec.longitude || '—'],
+        ['Высота', rec.elevation ? `${rec.elevation} м` : '—'],
+        ['Диаметр', rec.diameter ? `${rec.diameter} мм` : '—'],
+        ['Интервалы', rec.intervals || '—'],
+        ['Создал', rec.creator_name || '—'],
+      ],
     };
     return map[type];
   };
@@ -189,10 +211,10 @@ export default function AllDataPage() {
   // ===== ГРУППИРОВКА ПО СКВАЖИНЕ =====
   const buildGroups = () => {
     const groups = {};
-    ['drilling', 'field', 'washing', 'assay'].forEach((type) => {
+    ['drilling', 'field', 'washing', 'assay', 'primary'].forEach((type) => {
       data[type].forEach((rec) => {
         const hole = rec.hole_number || 'Без номера';
-        if (!groups[hole]) groups[hole] = { drilling: [], field: [], washing: [], assay: [] };
+        if (!groups[hole]) groups[hole] = { drilling: [], field: [], washing: [], assay: [], primary: [] };
         groups[hole][type].push(rec);
       });
     });
@@ -205,7 +227,7 @@ export default function AllDataPage() {
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   const totalRecords =
-    data.drilling.length + data.field.length + data.washing.length + data.assay.length;
+    data.drilling.length + data.field.length + data.washing.length + data.assay.length + data.primary.length;
 
   if (loading) return <div className="state-msg">Загрузка...</div>;
 
@@ -250,7 +272,7 @@ export default function AllDataPage() {
                   <div className="group-left">
                     <span className="group-hole">Скважина {hole}</span>
                     <div className="group-tags">
-                      {['drilling', 'field', 'washing', 'assay'].map((t) =>
+                      {['drilling', 'field', 'washing', 'assay', 'primary'].map((t) =>
                         g[t].length > 0 ? (
                           <span
                             key={t}
@@ -268,7 +290,7 @@ export default function AllDataPage() {
 
                 {isOpen && (
                   <div className="group-body">
-                    {['drilling', 'field', 'washing', 'assay'].map((type) =>
+                    {['drilling', 'field', 'washing', 'assay', 'primary'].map((type) =>
                       g[type].length > 0 ? (
                         <div className="section" key={type}>
                           <div
