@@ -38,7 +38,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Логин уже существует' }, { status: 400 });
     }
 
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const passwordHash = bcrypt.hashSync(password, 10);
     const created_at = new Date().toISOString();
 

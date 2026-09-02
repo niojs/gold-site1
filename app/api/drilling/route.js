@@ -3,40 +3,45 @@ import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  try {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get('session')?.value;
 
-  if (!sessionId) {
-    return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!sessionId) {
+      return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    }
+
+    const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+    const user = userResult.rows[0];
+    const role = user?.role;
+
+    let records = [];
+
+    if (role === 'admin' || role === 'chief_geologist') {
+      const result = await query(
+        `SELECT d.*, u.username as creator_name
+         FROM drilling_records d
+         LEFT JOIN users u ON d.created_by = u.id
+         ORDER BY d.created_at DESC`
+      );
+      records = result.rows;
+    } else if (role === 'driller') {
+      const result = await query(
+        `SELECT d.*, u.username as creator_name
+         FROM drilling_records d
+         LEFT JOIN users u ON d.created_by = u.id
+         WHERE d.user_id = $1
+         ORDER BY d.created_at DESC`,
+        [sessionId]
+      );
+      records = result.rows;
+    }
+
+    return NextResponse.json(records);
+  } catch (error) {
+    console.error('Ошибка загрузки буровых:', error);
+    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   }
-
-  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
-  const user = userResult.rows[0];
-  const role = user?.role;
-
-  let records = [];
-
-  if (role === 'admin' || role === 'chief_geologist') {
-    const result = await query(
-      `SELECT d.*, u.username as creator_name
-       FROM drilling_records d
-       LEFT JOIN users u ON d.created_by = u.id
-       ORDER BY d.created_at DESC`
-    );
-    records = result.rows;
-  } else if (role === 'driller') {
-    const result = await query(
-      `SELECT d.*, u.username as creator_name
-       FROM drilling_records d
-       LEFT JOIN users u ON d.created_by = u.id
-       WHERE d.user_id = $1
-       ORDER BY d.created_at DESC`,
-      [sessionId]
-    );
-    records = result.rows;
-  }
-
-  return NextResponse.json(records);
 }
 
 export async function POST(request) {
@@ -60,7 +65,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 });
     }
 
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const created_at = new Date().toISOString();
 
     await query(

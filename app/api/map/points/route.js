@@ -110,7 +110,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Название и координаты обязательны' }, { status: 400 });
     }
 
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const created_at = new Date().toISOString();
     const cs = coord_system || 'WGS-84';
     const csp = coord_system_project || cs;

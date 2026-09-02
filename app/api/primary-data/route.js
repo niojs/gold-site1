@@ -13,20 +13,25 @@ async function getUser() {
 }
 
 export async function GET() {
-  const user = await getUser();
-  if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  try {
+    const user = await getUser();
+    if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
-  const result = await query(
-    `SELECT p.*, u.username as creator_name
-     FROM primary_survey_data p
-     LEFT JOIN users u ON p.user_id = u.id
-     ORDER BY p.work_area, p.line_name, p.hole_number`
-  );
+    const result = await query(
+      `SELECT p.*, u.username as creator_name
+       FROM primary_survey_data p
+       LEFT JOIN users u ON p.user_id = u.id
+       ORDER BY p.work_area, p.line_name, p.hole_number`
+    );
 
-  const sitesResult = await query('SELECT DISTINCT work_area FROM primary_survey_data WHERE work_area IS NOT NULL');
-  const sites = sitesResult.rows.map(r => r.work_area).filter(Boolean);
+    const sitesResult = await query('SELECT DISTINCT work_area FROM primary_survey_data WHERE work_area IS NOT NULL');
+    const sites = sitesResult.rows.map(r => r.work_area).filter(Boolean);
 
-  return NextResponse.json({ records: result.rows, sites });
+    return NextResponse.json({ records: result.rows, sites });
+  } catch (error) {
+    console.error('Ошибка загрузки первичных данных:', error);
+    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
+  }
 }
 
 export async function POST(request) {

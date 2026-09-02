@@ -44,6 +44,14 @@ export default function WashingPage() {
     { headerName: 'Интервал', field: 'interval', editable: true },
     { headerName: 'Масса (кг)', field: 'mass', editable: true, type: 'numericColumn' },
     { headerName: 'Объём (л)', field: 'volume', editable: true, type: 'numericColumn' },
+    { headerName: 'Плотность (кг/л)', field: 'density', editable: false, type: 'numericColumn',
+      valueGetter: (params) => {
+        const m = parseFloat(params.data.mass);
+        const v = parseFloat(params.data.volume);
+        if (m && v && v > 0) return (m / v).toFixed(3);
+        return '';
+      },
+    },
     { headerName: 'Визуально', field: 'visualDescription', editable: true },
     { headerName: 'Записал', field: 'creatorName', editable: false },
   ];
