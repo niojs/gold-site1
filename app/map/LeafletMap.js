@@ -50,7 +50,7 @@ function getWgs84Coords(point) {
 
   const wgs = toWgs84(system, parsed);
   if (wgs) {
-    return { lat: wgs[1], lng: wgs[0], displaySystem: system };
+    return { lat: wgs[0], lng: wgs[1], displaySystem: system };
   }
 
   return { lat: parsed[0], lng: parsed[1], displaySystem: 'WGS-84 (fallback)' };
@@ -83,7 +83,7 @@ function getAllCoordDisplays(point) {
     displays.push({ system, value: coordsToString(parsed[0], parsed[1], 2) });
     const wgs = toWgs84(system, parsed);
     if (wgs) {
-      displays.push({ system: 'WGS-84', value: coordsToString(wgs[1], wgs[0], 6) });
+      displays.push({ system: 'WGS-84', value: coordsToString(wgs[0], wgs[1], 6) });
       for (const sys of COORD_SYSTEMS) {
         if (sys === 'WGS-84' || sys === system) continue;
         const converted = fromWgs84(sys, wgs);
