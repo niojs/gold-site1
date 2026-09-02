@@ -49,6 +49,7 @@ export default function Navigation() {
         { href: '/map', label: '🗺️ Карта' },
       ],
       driller: [
+        { href: '/drilling', label: '⛏️ Буровые работы' },
         { href: '/map', label: '🗺️ Карта' },
       ],
       washer: [{ href: '/washing', label: '🧪 Отдел промывки' }],

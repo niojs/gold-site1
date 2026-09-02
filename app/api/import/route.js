@@ -8,6 +8,7 @@ const TABLE_COLUMNS = {
   field_data: ['id', 'user_id', 'hole_number', 'coordinates', 'line_height', 'intervals', 'geological_description', 'ugv', 'date', 'time', 'site', 'diameter', 'core_recovery', 'created_at'],
   washing_data: ['id', 'user_id', 'hole_number', 'interval', 'mass', 'volume', 'visual_description', 'created_at'],
   assay_data: ['id', 'user_id', 'hole_number', 'interval', 'reserves', 'marks', 'sample_weight', 'created_at'],
+  primary_survey_data: ['id', 'hole_number', 'work_area', 'line_name', 'latitude', 'longitude', 'elevation', 'diameter', 'intervals', 'coord_system', 'created_at'],
 };
 
 // Ключ уникальности: по каким полям считаем запись "той же самой"
@@ -16,6 +17,7 @@ const UNIQUE_KEYS = {
   field_data: ['hole_number', 'intervals'],
   washing_data: ['hole_number', 'interval'],
   assay_data: ['hole_number', 'interval'],
+  primary_survey_data: ['hole_number', 'work_area'],
 };
 
 const RU_TO_EN = {
@@ -43,6 +45,13 @@ const RU_TO_EN = {
   'Запасы (т)': 'reserves',
   'Отметки': 'marks',
   'Вес пробы (кг)': 'sample_weight',
+  'Рабочая область': 'work_area',
+  'Линия': 'line_name',
+  'Широта': 'latitude',
+  'Долгота': 'longitude',
+  'Высота': 'elevation',
+  'Система координат': 'coord_system',
+  'Первичное опробование': 'primary',
 };
 
 function normalizeHeader(header) {
@@ -55,6 +64,7 @@ function detectTable(headers) {
   if (headers.includes('ugv') || headers.includes('geological_description') || headers.includes('core_recovery')) return 'field_data';
   if (headers.includes('mass') && headers.includes('volume')) return 'washing_data';
   if (headers.includes('reserves') || headers.includes('sample_weight')) return 'assay_data';
+  if (headers.includes('latitude') || headers.includes('longitude') || headers.includes('coord_system')) return 'primary_survey_data';
   if (headers.includes('diameter')) return 'drilling_records';
   return null;
 }
@@ -253,8 +263,9 @@ export async function POST(request) {
       drilling_records: 'Буровые работы',
       field_data: 'Полевые данные',
       washing_data: 'Промывка',
-      assay_data: 'Пробы',
-    };
+  assay_data: 'Пробы',
+  primary_survey_data: 'Первичное опробование',
+};
 
     let msg = `«${tableLabels[tableName]}»: добавлено ${insertedCount}`;
     if (mergedCount) msg += `, дозаполнено ${mergedCount}`;

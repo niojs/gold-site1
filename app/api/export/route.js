@@ -23,6 +23,7 @@ export async function GET(request) {
     field: { name: 'field_data', label: 'Полевые данные' },
     washing: { name: 'washing_data', label: 'Промывка' },
     assay: { name: 'assay_data', label: 'Пробы' },
+    primary: { name: 'primary_survey_data', label: 'Первичное опробование' },
   };
 
   // ===== РУССКИЕ НАЗВАНИЯ КОЛОНОК =====
@@ -66,6 +67,17 @@ export async function GET(request) {
       reserves: 'Запасы (т)',
       marks: 'Отметки',
       sample_weight: 'Вес пробы (кг)',
+    },
+    primary: {
+      hole_number: 'Скважина',
+      work_area: 'Рабочая область',
+      line_name: 'Линия',
+      latitude: 'Широта',
+      longitude: 'Долгота',
+      elevation: 'Высота',
+      diameter: 'Диаметр (мм)',
+      intervals: 'Интервалы',
+      coord_system: 'Система координат',
     },
   };
 

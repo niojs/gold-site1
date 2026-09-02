@@ -68,8 +68,18 @@ export async function POST(request) {
   try {
     const { holeNumber, interval, reserves, marks, sampleWeight, site } = await request.json();
 
-    if (!holeNumber || !interval || reserves === undefined || !sampleWeight) {
-      return NextResponse.json({ error: 'Скважина, интервал, запасы и вес пробы обязательны' }, { status: 400 });
+    if (!holeNumber || !interval) {
+      return NextResponse.json({ error: 'Скважина и интервал обязательны' }, { status: 400 });
+    }
+
+    const reservesNum = parseFloat(reserves);
+    const weightNum = parseFloat(sampleWeight);
+
+    if (isNaN(reservesNum) || reservesNum < 0) {
+      return NextResponse.json({ error: 'Запасы должны быть положительным числом' }, { status: 400 });
+    }
+    if (isNaN(weightNum) || weightNum <= 0) {
+      return NextResponse.json({ error: 'Вес пробы должен быть больше нуля' }, { status: 400 });
     }
 
     const id = crypto.randomUUID();
@@ -78,7 +88,7 @@ export async function POST(request) {
     await query(
       `INSERT INTO assay_data (id, user_id, hole_number, interval, reserves, marks, sample_weight, created_at, created_by, site)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, sessionId, holeNumber, interval, parseFloat(reserves), marks || '', parseFloat(sampleWeight), created_at, sessionId, site || null]
+      [id, sessionId, holeNumber, interval, reservesNum, marks || '', weightNum, created_at, sessionId, site || null]
     );
 
     return NextResponse.json({ success: true });

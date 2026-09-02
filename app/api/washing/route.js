@@ -68,8 +68,18 @@ export async function POST(request) {
   try {
     const { holeNumber, interval, mass, volume, visualDescription, site } = await request.json();
 
-    if (!holeNumber || !interval || !mass || !volume) {
-      return NextResponse.json({ error: 'Номер скважины, интервал, масса и объём обязательны' }, { status: 400 });
+    if (!holeNumber || !interval) {
+      return NextResponse.json({ error: 'Номер скважины и интервал обязательны' }, { status: 400 });
+    }
+
+    const massNum = parseFloat(mass);
+    const volumeNum = parseFloat(volume);
+
+    if (isNaN(massNum) || massNum < 0) {
+      return NextResponse.json({ error: 'Масса должна быть положительным числом' }, { status: 400 });
+    }
+    if (isNaN(volumeNum) || volumeNum <= 0) {
+      return NextResponse.json({ error: 'Объём должен быть больше нуля' }, { status: 400 });
     }
 
     const id = crypto.randomUUID();
@@ -78,7 +88,7 @@ export async function POST(request) {
     await query(
       `INSERT INTO washing_data (id, user_id, hole_number, interval, mass, volume, visual_description, created_at, created_by, site)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, sessionId, holeNumber, interval, parseFloat(mass), parseFloat(volume), visualDescription || '', created_at, sessionId, site || null]
+      [id, sessionId, holeNumber, interval, massNum, volumeNum, visualDescription || '', created_at, sessionId, site || null]
     );
 
     return NextResponse.json({ success: true });

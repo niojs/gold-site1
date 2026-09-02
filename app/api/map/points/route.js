@@ -85,7 +85,7 @@ export async function POST(request) {
   const sessionId = cookieStore.get('session')?.value;
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
-  if (!CAN_VIEW_MAP.includes(user.role)) {
+  if (!CAN_EDIT.includes(user.role)) {
     return NextResponse.json({ error: 'Нет доступа' }, { status: 403 });
   }
 

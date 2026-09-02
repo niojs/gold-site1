@@ -6,6 +6,7 @@ export async function GET() {
   try {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get('session')?.value;
+    const siteFilter = cookieStore.get('selected_site')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
@@ -14,26 +15,34 @@ export async function GET() {
     const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
     const user = userResult.rows[0];
     const role = user?.role;
+    const useSiteFilter = siteFilter && siteFilter !== '__none__';
 
     let records = [];
 
     if (role === 'admin' || role === 'chief_geologist') {
-      const result = await query(
-        `SELECT d.*, u.username as creator_name
+      let sql = `SELECT d.*, u.username as creator_name
          FROM drilling_records d
-         LEFT JOIN users u ON d.created_by = u.id
-         ORDER BY d.created_at DESC`
-      );
+         LEFT JOIN users u ON d.created_by = u.id`;
+      const params = [];
+      if (useSiteFilter) {
+        sql += ` WHERE d.site = $1`;
+        params.push(siteFilter);
+      }
+      sql += ` ORDER BY d.created_at DESC`;
+      const result = await query(sql, params);
       records = result.rows;
     } else if (role === 'driller') {
-      const result = await query(
-        `SELECT d.*, u.username as creator_name
+      let sql = `SELECT d.*, u.username as creator_name
          FROM drilling_records d
          LEFT JOIN users u ON d.created_by = u.id
-         WHERE d.user_id = $1
-         ORDER BY d.created_at DESC`,
-        [sessionId]
-      );
+         WHERE d.user_id = $1`;
+      const params = [sessionId];
+      if (useSiteFilter) {
+        sql += ` AND d.site = $2`;
+        params.push(siteFilter);
+      }
+      sql += ` ORDER BY d.created_at DESC`;
+      const result = await query(sql, params);
       records = result.rows;
     }
 

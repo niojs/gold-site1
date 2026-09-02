@@ -7,7 +7,7 @@ const ROLE_REDIRECTS = {
   admin: '/map',
   chief_geologist: '/map',
   field_geologist: '/field-data',
-  driller: '/map',
+  driller: '/drilling',
   washer: '/washing',
   sampler: '/assay',
 };
