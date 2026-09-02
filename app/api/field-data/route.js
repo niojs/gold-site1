@@ -20,7 +20,7 @@ export async function GET() {
     let records = [];
 
     if (role === 'admin' || role === 'chief_geologist') {
-      let sql = `SELECT f.*, u.username as creator_name
+      let sql = `SELECT f.*, u.username as creator_name, 'field' as source
          FROM field_data f
          LEFT JOIN users u ON f.created_by = u.id`;
       const params = [];
@@ -31,19 +31,46 @@ export async function GET() {
       sql += ` ORDER BY f.created_at DESC`;
       const result = await query(sql, params);
       records = result.rows;
-    } else if (role === 'field_geologist') {
-      let sql = `SELECT f.*, u.username as creator_name
-         FROM field_data f
-         LEFT JOIN users u ON f.created_by = u.id
-         WHERE f.user_id = $1`;
-      const params = [sessionId];
+
+      let primarySql = `SELECT p.*, u.username as creator_name, 'primary' as source,
+         CONCAT(p.latitude, ', ', longitude) as coordinates,
+         p.work_area as site, p.hole_number
+         FROM primary_survey_data p
+         LEFT JOIN users u ON p.user_id = u.id`;
+      const primaryParams = [];
       if (useSiteFilter) {
-        sql += ` AND f.site = $2`;
+        primarySql += ` WHERE p.work_area = $1`;
+        primaryParams.push(siteFilter);
+      }
+      primarySql += ` ORDER BY p.created_at DESC`;
+      const primaryResult = await query(primarySql, primaryParams);
+      records = [...records, ...primaryResult.rows];
+    } else if (role === 'field_geologist') {
+      let sql = `SELECT f.*, u.username as creator_name, 'field' as source
+         FROM field_data f
+         LEFT JOIN users u ON f.created_by = u.id`;
+      const params = [];
+      if (useSiteFilter) {
+        sql += ` WHERE f.site = $1`;
         params.push(siteFilter);
       }
       sql += ` ORDER BY f.created_at DESC`;
       const result = await query(sql, params);
       records = result.rows;
+
+      let primarySql = `SELECT p.*, u.username as creator_name, 'primary' as source,
+         CONCAT(p.latitude, ', ', longitude) as coordinates,
+         p.work_area as site, p.hole_number
+         FROM primary_survey_data p
+         LEFT JOIN users u ON p.user_id = u.id`;
+      const primaryParams = [];
+      if (useSiteFilter) {
+        primarySql += ` WHERE p.work_area = $1`;
+        primaryParams.push(siteFilter);
+      }
+      primarySql += ` ORDER BY p.created_at DESC`;
+      const primaryResult = await query(primarySql, primaryParams);
+      records = [...records, ...primaryResult.rows];
     }
 
     return NextResponse.json(records);

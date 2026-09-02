@@ -41,6 +41,22 @@ export default function GoldGrid({
     onDeleteRows(selected);
   }, [onDeleteRows]);
 
+  const checkboxCol = onDeleteRows ? [{
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 45,
+    minWidth: 45,
+    maxWidth: 45,
+    pinned: 'left',
+    suppressMenu: true,
+    resizable: false,
+    sortable: false,
+    filter: false,
+    editable: false,
+  }] : [];
+
+  const finalColumnDefs = [...checkboxCol, ...columnDefs];
+
   return (
     <div style={{ height, display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.8rem', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -76,7 +92,7 @@ export default function GoldGrid({
         <AgGridReact
           ref={gridRef}
           rowData={rowData}
-          columnDefs={columnDefs}
+          columnDefs={finalColumnDefs}
           defaultColDef={defaultColDef}
           onGridReady={() => setReady(true)}
           onCellValueChanged={onCellValueChanged}
