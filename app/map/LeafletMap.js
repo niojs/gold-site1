@@ -165,16 +165,8 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
       const wgs = getWgs84Coords(point);
       if (!wgs) return;
 
-      let lat = wgs.lat;
-      let lng = wgs.lng;
-
-      if (displaySystem !== 'WGS-84') {
-        const converted = fromWgs84(displaySystem, [lng, lat]);
-        if (converted) {
-          lat = converted[1];
-          lng = converted[0];
-        }
-      }
+      const lat = wgs.lat;
+      const lng = wgs.lng;
 
       const color = getPointColor(point);
       const isDrilled = point.is_drilled;
@@ -230,17 +222,6 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div className="map-control">
-        <div>
-          <label>Отображение координат</label>
-          <select
-            value={displaySystem}
-            onChange={(e) => setDisplaySystem(e.target.value)}
-          >
-            {COORD_SYSTEMS.map(sys => (
-              <option key={sys} value={sys}>{sys}</option>
-            ))}
-          </select>
-        </div>
         <div>
           <label>Слой</label>
           <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value)}>
