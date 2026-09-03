@@ -78,11 +78,6 @@ export default function GoldGrid({
               {gridRef.current?.api?.getDisplayedRowCount() || 0} строк
             </span>
           )}
-          {onSave && (
-            <button className="btn-gold" onClick={onSave} style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}>
-              {saveLabel || 'Сохранить'}
-            </button>
-          )}
         </div>
       </div>
       <div
@@ -112,14 +107,14 @@ export default function GoldGrid({
           onClick={onSave}
           style={{
             position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
-            padding: '0.8rem 2rem',
-            fontSize: '1rem',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            padding: '0.7rem 1.8rem',
+            fontSize: '0.95rem',
             fontWeight: 700,
             borderRadius: '12px',
             boxShadow: '0 4px 24px rgba(212,175,55,0.4)',
-            zIndex: 1000,
+            zIndex: 999,
             cursor: 'pointer',
           }}
         >
