@@ -34,20 +34,23 @@ export async function GET() {
   const useSiteFilter = siteFilter && siteFilter !== '__none__';
 
   try {
-    let drillingSql = 'SELECT * FROM drilling_records';
-    let fieldSql = 'SELECT * FROM field_data';
-    let washingSql = 'SELECT * FROM washing_data';
-    let assaySql = 'SELECT * FROM assay_data';
-    let primarySql = 'SELECT * FROM primary_survey_data';
-    const params = [];
+    let drillingSql = `SELECT d.*, u.username as creator_name FROM drilling_records d LEFT JOIN users u ON d.created_by = u.id`;
+    let fieldSql = `SELECT f.*, u.username as creator_name FROM field_data f LEFT JOIN users u ON f.created_by = u.id`;
+    let washingSql = `SELECT w.*, u.username as creator_name FROM washing_data w LEFT JOIN users u ON w.created_by = u.id`;
+    let assaySql = `SELECT a.*, u.username as creator_name FROM assay_data a LEFT JOIN users u ON a.created_by = u.id`;
+    let primarySql = `SELECT p.*, u.username as creator_name FROM primary_survey_data p LEFT JOIN users u ON p.user_id = u.id`;
+    const whereClauses = [];
 
     if (useSiteFilter) {
-      drillingSql += ' WHERE site = $1';
-      fieldSql += ' WHERE site = $1';
-      washingSql += ' WHERE site = $1';
-      assaySql += ' WHERE site = $1';
-      primarySql += ' WHERE work_area = $1';
-      params.push(siteFilter);
+      whereClauses.push(siteFilter);
+    }
+
+    if (useSiteFilter) {
+      drillingSql += ` WHERE d.site = $1`;
+      fieldSql += ` WHERE f.site = $1`;
+      washingSql += ` WHERE w.site = $1`;
+      assaySql += ` WHERE a.site = $1`;
+      primarySql += ` WHERE p.work_area = $1`;
     }
 
     drillingSql += ' ORDER BY created_at DESC';
@@ -56,11 +59,11 @@ export async function GET() {
     assaySql += ' ORDER BY created_at DESC';
     primarySql += ' ORDER BY created_at DESC';
 
-    const drillingResult = await query(drillingSql, params);
-    const fieldResult = await query(fieldSql, params);
-    const washingResult = await query(washingSql, params);
-    const assayResult = await query(assaySql, params);
-    const primaryResult = await query(primarySql, params);
+    const drillingResult = await query(drillingSql, whereClauses);
+    const fieldResult = await query(fieldSql, whereClauses);
+    const washingResult = await query(washingSql, whereClauses);
+    const assayResult = await query(assaySql, whereClauses);
+    const primaryResult = await query(primarySql, whereClauses);
 
     return NextResponse.json({
       drilling: drillingResult.rows,

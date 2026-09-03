@@ -8,7 +8,6 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [userRole, setUserRole] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -32,190 +31,167 @@ export default function Navigation() {
   const getMenuItems = () => {
     const roleSpecific = {
       admin: [
-        { href: '/dashboard', label: '📊 Дашборд' },
-        { href: '/primary-data', label: '📐 Первичные данные' },
-        { href: '/admin/users', label: '👥 Пользователи' },
-        { href: '/table', label: '📋 Все данные' },
-        { href: '/map', label: '🗺️ Карта' },
-        { href: '/import-export', label: '📤 Импорт/Экспорт' },
+        { href: '/dashboard', label: 'Дашборд' },
+        { href: '/primary-data', label: 'Данные' },
+        { href: '/admin/users', label: 'Люди' },
+        { href: '/table', label: 'Всё' },
+        { href: '/map', label: 'Карта' },
+        { href: '/import-export', label: 'Импорт' },
       ],
       chief_geologist: [
-        { href: '/dashboard', label: '📊 Дашборд' },
-        { href: '/primary-data', label: '📐 Первичные данные' },
-        { href: '/table', label: '📋 Все рабочие данные' },
-        { href: '/map', label: '🗺️ Карта' },
-        { href: '/import-export', label: '📤 Импорт/Экспорт' },
+        { href: '/dashboard', label: 'Дашборд' },
+        { href: '/primary-data', label: 'Данные' },
+        { href: '/table', label: 'Всё' },
+        { href: '/map', label: 'Карта' },
+        { href: '/import-export', label: 'Импорт' },
       ],
       field_geologist: [
-        { href: '/field-data', label: '📝 Полевые данные' },
-        { href: '/map', label: '🗺️ Карта' },
+        { href: '/field-data', label: 'Полевые' },
+        { href: '/map', label: 'Карта' },
       ],
       driller: [
-        { href: '/drilling', label: '⛏️ Буровые работы' },
-        { href: '/map', label: '🗺️ Карта' },
+        { href: '/drilling', label: 'Буровые' },
+        { href: '/map', label: 'Карта' },
       ],
-      washer: [{ href: '/washing', label: '🧪 Отдел промывки' }],
-      sampler: [{ href: '/assay', label: '⚗️ Отдел проб' }],
+      washer: [{ href: '/washing', label: 'Промывка' }],
+      sampler: [{ href: '/assay', label: 'Пробы' }],
     };
 
-    if (!userRole) return [{ href: '/', label: '🔑 Войти' }];
+    if (!userRole) return [{ href: '/', label: 'Войти' }];
     return roleSpecific[userRole] || [];
   };
 
   const menuItems = getMenuItems();
-  const isSinglePageRole = ['driller', 'washer', 'sampler'].includes(userRole);
-  const hasMenuItems = menuItems.length > 0;
 
   return (
     <nav className="nav-bar">
       <div className="nav-content">
-        <Link href={userRole ? (userRole === 'admin' || userRole === 'chief_geologist' ? '/dashboard' : '/map') : '/'} className="logo-link">
-          <span className="logo-icon">⚒️</span>
+        <Link href={userRole === 'admin' || userRole === 'chief_geologist' ? '/dashboard' : userRole ? '/map' : '/'} className="logo-link">
+          <span className="logo-icon">⛏️</span>
           <span className="logo-text">Gold Manager</span>
         </Link>
 
-        {isSinglePageRole && (
-          <div className="nav-actions">
-            <button onClick={handleChangeSite} className="nav-btn site-btn">
-              <span className="nav-btn-icon">🗺️</span>
-              <span>Участок</span>
+        <div className="nav-links">
+          {menuItems.map((item) => (
+            <Link key={item.href} href={item.href} className={`nav-link ${pathname === item.href ? 'active' : ''}`}>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="nav-right">
+          {userRole && (
+            <button onClick={handleChangeSite} className="nav-link site-btn">
+              Сменить участок
             </button>
-            <button onClick={handleLogout} className="nav-btn logout-btn">
+          )}
+          {userRole && (
+            <button onClick={handleLogout} className="nav-link logout-link">
               Выйти
             </button>
-          </div>
-        )}
-
-        {hasMenuItems && !isSinglePageRole && (
-          <div className="nav-actions">
-            <div className="menu-links">
-              {menuItems.map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
-                  <span className={pathname === item.href ? 'link active' : 'link'}>
-                    {item.label}
-                  </span>
-                </Link>
-              ))}
-              <button onClick={handleChangeSite} className="link site-link">
-                🗺️ Сменить участок
-              </button>
-              <button onClick={handleLogout} className="nav-btn logout-btn">
-                Выйти
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <style jsx>{`
         .nav-bar {
-          background: transparent;
-          padding: 1rem 1.5rem;
-          position: relative;
+          background: rgba(15, 12, 8, 0.95);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(212,175,55,0.12);
+          padding: 0 1.5rem;
+          position: sticky;
+          top: 0;
           z-index: 1000;
         }
         .nav-content {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          max-width: 1200px;
+          max-width: 1400px;
           margin: 0 auto;
-          width: 100%;
+          height: 48px;
+          gap: 1.5rem;
         }
 
         .logo-link {
           display: flex;
           align-items: center;
-          gap: 0.55rem;
+          gap: 0.45rem;
           text-decoration: none;
-          transition: opacity 0.2s;
           flex-shrink: 0;
+          margin-right: 0.5rem;
         }
-        .logo-link:hover { opacity: 0.8; }
-        .logo-icon { font-size: 1.5rem; }
+        .logo-icon { font-size: 1.15rem; }
         .logo-text {
-          font-size: 1.35rem;
-          font-weight: 600;
+          font-size: 1rem;
+          font-weight: 700;
           color: #d4af37;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.3px;
         }
 
-        .nav-actions {
+        .nav-links {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
+          gap: 0.15rem;
+          flex: 1;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         }
+        .nav-links::-webkit-scrollbar { display: none; }
 
-        .nav-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background: transparent;
-          border: 1px solid rgba(212,175,55,0.3);
-          color: #d4af37;
-          padding: 0.45rem 1rem;
-          font-weight: 500;
-          font-size: 0.85rem;
-          cursor: pointer;
-          border-radius: 8px;
-          transition: all 0.2s;
+        .nav-link {
+          color: #8a7e6a;
+          padding: 0.35rem 0.7rem;
+          font-size: 0.8rem;
           white-space: nowrap;
-        }
-        .nav-btn:hover {
-          background: rgba(212,175,55,0.1);
-          border-color: #d4af37;
-        }
-        .nav-btn-icon { font-size: 0.9rem; }
-
-        .logout-btn {
-          color: #999;
-          border-color: rgba(153,153,153,0.2);
-        }
-        .logout-btn:hover {
-          color: #d4af37;
-          border-color: rgba(212,175,55,0.3);
-          background: rgba(212,175,55,0.05);
-        }
-
-        .menu-links {
-          display: flex;
-          gap: 1.2rem;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-        .link {
-          color: #999;
-          padding: 0.3rem 0;
+          border-radius: 6px;
+          text-decoration: none;
+          transition: all 0.15s;
           cursor: pointer;
-          font-size: 0.92rem;
-          white-space: nowrap;
-          transition: color 0.2s;
-        }
-        .link.active { color: #d4af37; font-weight: 500; }
-        .link:hover { color: #d4af37; }
-        .site-link {
           background: none;
           border: none;
-          font-size: 0.92rem;
+          font-family: inherit;
+        }
+        .nav-link:hover {
+          color: #d4af37;
+          background: rgba(212,175,55,0.08);
+        }
+        .nav-link.active {
+          color: #d4af37;
+          background: rgba(212,175,55,0.12);
+          font-weight: 500;
         }
 
-        @media (max-width: 768px) {
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          flex-shrink: 0;
+        }
+
+        .site-btn {
+          color: #8a7e6a;
+        }
+        .logout-link {
+          color: #665;
+        }
+        .logout-link:hover {
+          color: #cf6b5e;
+          background: rgba(207,107,94,0.08);
+        }
+
+        @media (max-width: 900px) {
           .nav-content {
+            height: auto;
             flex-wrap: wrap;
-            gap: 0.8rem;
+            padding: 0.5rem 0;
+            gap: 0.5rem;
           }
-          .menu-links {
-            display: ${menuOpen ? 'flex' : 'none'};
-            flex-direction: column;
+          .nav-links {
+            order: 3;
             width: 100%;
-            gap: 0.2rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid rgba(212, 175, 55, 0.15);
-          }
-          .menu-links .link {
-            display: block;
-            width: 100%;
-            padding: 0.6rem 0;
+            overflow-x: auto;
+            padding-bottom: 0.3rem;
           }
         }
       `}</style>
