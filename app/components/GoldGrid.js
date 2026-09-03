@@ -107,7 +107,7 @@ export default function GoldGrid({
           onClick={onSave}
           style={{
             position: 'fixed',
-            bottom: '1.5rem',
+            bottom: '3.5rem',
             right: '1.5rem',
             padding: '0.7rem 1.8rem',
             fontSize: '0.95rem',
