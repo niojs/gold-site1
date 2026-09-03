@@ -9,9 +9,13 @@ export async function POST(request) {
     }
 
     // Sites
-    const sites = ['АБЗАКОВО', 'БЕЛОРЕЦК', 'ИШЛЫ'];
-    for (const s of sites) {
-      await query("INSERT INTO sites (name) VALUES ($1) ON CONFLICT DO NOTHING", [s]);
+    const sites = [
+      ['site_abz', 'АБЗАКОВО'],
+      ['site_bel', 'БЕЛОРЕЦК'],
+      ['site_ish', 'ИШЛЫ'],
+    ];
+    for (const [id, name] of sites) {
+      await query("INSERT INTO sites (id, name, created_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING", [id, name, new Date().toISOString()]);
     }
 
     // User-site assignments
