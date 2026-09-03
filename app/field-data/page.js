@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import GoldGrid from '../components/GoldGrid';
 
@@ -159,6 +159,60 @@ export default function FieldDataPage() {
     }
   };
 
+  const onSave = useCallback(async () => {
+    let saved = 0;
+    for (const row of records) {
+      const isNew = String(row.id).startsWith('temp-') || String(row.id).startsWith('new_');
+      try {
+        if (isNew) {
+          const res = await fetch('/api/field-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              holeNumber: row.holeNumber,
+              coordinates: row.coordinates,
+              lineHeight: row.lineHeight,
+              intervals: row.intervals,
+              geologicalDescription: row.geologicalDescription,
+              ugv: row.ugv,
+              diameter: row.diameter,
+              coreRecovery: row.coreRecovery,
+              date: row.date,
+              time: row.time,
+              site: selectedSite,
+              brigade: row.brigade,
+            }),
+          });
+          if (res.ok) saved++;
+        } else {
+          const res = await fetch('/api/field-data', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: row.id,
+              holeNumber: row.holeNumber,
+              coordinates: row.coordinates,
+              lineHeight: row.lineHeight,
+              intervals: row.intervals,
+              geologicalDescription: row.geologicalDescription,
+              ugv: row.ugv,
+              diameter: row.diameter,
+              coreRecovery: row.coreRecovery,
+              date: row.date,
+              time: row.time,
+              site: selectedSite,
+              brigade: row.brigade,
+            }),
+          });
+          if (res.ok) saved++;
+        }
+      } catch (e) { console.error(e); }
+    }
+    if (saved > 0) { setSuccess(`Сохранено: ${saved}`); setTimeout(() => setSuccess(''), 3000); fetchRecords(); }
+  }, [records, selectedSite, fetchRecords]);
+
   const onAddRow = () => {
     const newRow = {
       id: 'new_' + Date.now(),
@@ -237,6 +291,8 @@ export default function FieldDataPage() {
           onAddRow={onAddRow}
           addRowLabel="Добавить строку"
           getRowId={getRowId}
+          onSave={onSave}
+          saveLabel="Сохранить"
           height="70vh"
         />
       </div>

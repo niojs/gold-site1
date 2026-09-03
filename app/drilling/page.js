@@ -133,6 +133,56 @@ export default function DrillingPage() {
     }
   }, [selectedSite, fetchRecords]);
 
+  const onSave = useCallback(async () => {
+    let saved = 0;
+    for (const row of records) {
+      const isNew = String(row.id).startsWith('temp-') || String(row.id).startsWith('new_');
+      try {
+        if (isNew) {
+          const res = await fetch('/api/drilling', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              holeNumber: row.holeNumber,
+              site: selectedSite,
+              queue: row.queue === '' ? null : Number(row.queue),
+              isDrilled: row.isDrilled === 'Да',
+              diameter: row.diameter === '' ? null : Number(row.diameter),
+              startTime: row.startTime,
+              endTime: row.endTime,
+              date: row.date,
+              brigade: row.brigade,
+              coordinates: row.coordinates,
+            }),
+          });
+          if (res.ok) saved++;
+        } else {
+          const res = await fetch('/api/drilling', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: row.id,
+              holeNumber: row.holeNumber,
+              site: selectedSite,
+              queue: row.queue === '' ? null : Number(row.queue),
+              isDrilled: row.isDrilled === 'Да',
+              diameter: row.diameter === '' ? null : Number(row.diameter),
+              startTime: row.startTime,
+              endTime: row.endTime,
+              date: row.date,
+              brigade: row.brigade,
+              coordinates: row.coordinates,
+            }),
+          });
+          if (res.ok) saved++;
+        }
+      } catch (e) { console.error(e); }
+    }
+    if (saved > 0) { showSuccess(`Сохранено: ${saved}`); fetchRecords(); }
+  }, [records, selectedSite, fetchRecords]);
+
   const onAddRow = useCallback(() => {
     setRecords(prev => [
       {
@@ -201,6 +251,8 @@ export default function DrillingPage() {
         onAddRow={onAddRow}
         addRowLabel="+ Добавить строку"
         getRowId={params => params.data.id}
+        onSave={onSave}
+        saveLabel="Сохранить"
         height="65vh"
       />
     </div>

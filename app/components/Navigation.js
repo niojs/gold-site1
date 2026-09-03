@@ -66,81 +66,71 @@ export default function Navigation() {
 
   return (
     <nav className="nav-bar">
-      <div className="nav-top">
+      <div className="nav-content">
         <Link href={userRole ? (userRole === 'admin' || userRole === 'chief_geologist' ? '/primary-data' : '/map') : '/'} className="logo-link">
           <span className="logo-icon">⚒️</span>
           <span className="logo-text">Gold Manager</span>
         </Link>
 
-        <div className="nav-right">
-          {isSinglePageRole && (
-            <>
-              <button onClick={handleChangeSite} className="site-btn">
-                🗺️ Участок
-              </button>
-              <button onClick={handleLogout} className="logout-solo">
-                Выйти
-              </button>
-            </>
-          )}
-          {hasMenuItems && !isSinglePageRole && (
-            <button onClick={() => setMenuOpen(!menuOpen)} className="burger-btn">
-              ☰
+        {isSinglePageRole && (
+          <div className="nav-actions">
+            <button onClick={handleChangeSite} className="nav-btn site-btn">
+              <span className="nav-btn-icon">🗺️</span>
+              <span>Участок</span>
             </button>
-          )}
-        </div>
-      </div>
+            <button onClick={handleLogout} className="nav-btn logout-btn">
+              Выйти
+            </button>
+          </div>
+        )}
 
-      {hasMenuItems && !isSinglePageRole && (
-        <div className={`menu-links ${menuOpen ? 'open' : ''}`}>
-          {menuItems.map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
-              <span className={pathname === item.href ? 'link active' : 'link'}>
-                {item.label}
-              </span>
-            </Link>
-          ))}
-          {userRole && (
-            <>
-              <button onClick={handleChangeSite} className="link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.92rem' }}>
+        {hasMenuItems && !isSinglePageRole && (
+          <div className="nav-actions">
+            <div className="menu-links">
+              {menuItems.map((item) => (
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                  <span className={pathname === item.href ? 'link active' : 'link'}>
+                    {item.label}
+                  </span>
+                </Link>
+              ))}
+              <button onClick={handleChangeSite} className="link site-link">
                 🗺️ Сменить участок
               </button>
-              <button onClick={handleLogout} className="logout-btn">
+              <button onClick={handleLogout} className="nav-btn logout-btn">
                 Выйти
               </button>
-            </>
-          )}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
 
       <style jsx>{`
         .nav-bar {
           background: transparent;
-          padding: 1.2rem 1.5rem;
+          padding: 1rem 1.5rem;
           position: relative;
           z-index: 1000;
         }
-        .nav-top {
+        .nav-content {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          max-width: 1200px;
+          margin: 0 auto;
+          width: 100%;
         }
 
-        /* ===== ЛОГО ===== */
         .logo-link {
           display: flex;
           align-items: center;
           gap: 0.55rem;
           text-decoration: none;
           transition: opacity 0.2s;
+          flex-shrink: 0;
         }
-        .logo-link:hover {
-          opacity: 0.8;
-        }
-        .logo-icon {
-          font-size: 1.5rem;
-          opacity: 0.95;
-        }
+        .logo-link:hover { opacity: 0.8; }
+        .logo-icon { font-size: 1.5rem; }
         .logo-text {
           font-size: 1.35rem;
           font-weight: 600;
@@ -148,62 +138,48 @@ export default function Navigation() {
           letter-spacing: 0.5px;
         }
 
-        /* ===== ПРАВАЯ ЧАСТЬ ===== */
-        .nav-right {
+        .nav-actions {
           display: flex;
           align-items: center;
-          gap: 0.8rem;
+          gap: 0.6rem;
         }
 
-        /* ===== КНОПКА "ВЫЙТИ" (одностраничные роли) ===== */
-        .logout-solo {
+        .nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
           background: transparent;
-          color: #999;
-          border: none;
-          padding: 0.4rem 0.6rem;
-          font-weight: 500;
-          font-size: 0.95rem;
-          letter-spacing: 0.3px;
-          cursor: pointer;
-          transition: color 0.2s;
-        }
-        .logout-solo:hover {
-          color: #d4af37;
-        }
-        .site-btn {
-          background: transparent;
-          color: #d4af37;
           border: 1px solid rgba(212,175,55,0.3);
-          padding: 0.35rem 0.7rem;
+          color: #d4af37;
+          padding: 0.45rem 1rem;
           font-weight: 500;
           font-size: 0.85rem;
           cursor: pointer;
-          transition: all 0.2s;
           border-radius: 8px;
+          transition: all 0.2s;
+          white-space: nowrap;
         }
-        .site-btn:hover {
+        .nav-btn:hover {
           background: rgba(212,175,55,0.1);
           border-color: #d4af37;
         }
+        .nav-btn-icon { font-size: 0.9rem; }
 
-        /* ===== БУРГЕР ===== */
-        .burger-btn {
-          display: none;
-          background: none;
-          border: none;
+        .logout-btn {
+          color: #999;
+          border-color: rgba(153,153,153,0.2);
+        }
+        .logout-btn:hover {
           color: #d4af37;
-          font-size: 1.6rem;
-          cursor: pointer;
-          padding: 0.2rem 0.4rem;
-          line-height: 1;
+          border-color: rgba(212,175,55,0.3);
+          background: rgba(212,175,55,0.05);
         }
 
-        /* ===== МЕНЮ ===== */
         .menu-links {
           display: flex;
-          gap: 1.3rem;
-          flex-wrap: wrap;
+          gap: 1.2rem;
           align-items: center;
+          flex-wrap: wrap;
         }
         .link {
           color: #999;
@@ -213,67 +189,31 @@ export default function Navigation() {
           white-space: nowrap;
           transition: color 0.2s;
         }
-        .link.active {
-          color: #d4af37;
-          font-weight: 500;
-        }
-        .link:hover {
-          color: #d4af37;
-        }
-        .logout-btn {
+        .link.active { color: #d4af37; font-weight: 500; }
+        .link:hover { color: #d4af37; }
+        .site-link {
           background: none;
           border: none;
-          color: #999;
-          padding: 0.3rem 0.4rem;
-          cursor: pointer;
           font-size: 0.92rem;
-          transition: color 0.2s;
-        }
-        .logout-btn:hover {
-          color: #d4af37;
         }
 
-        /* ===== ДЕСКТОП ===== */
-        @media (min-width: 769px) {
-          .nav-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-          }
-          .nav-top {
-            flex: none;
-          }
-        }
-
-        /* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
         @media (max-width: 768px) {
-          .burger-btn {
-            display: block;
+          .nav-content {
+            flex-wrap: wrap;
+            gap: 0.8rem;
           }
           .menu-links {
-            display: none;
+            display: ${menuOpen ? 'flex' : 'none'};
             flex-direction: column;
             width: 100%;
             gap: 0.2rem;
-            padding-top: 1rem;
-            margin-top: 1rem;
+            padding-top: 0.8rem;
             border-top: 1px solid rgba(212, 175, 55, 0.15);
-          }
-          .menu-links.open {
-            display: flex;
           }
           .menu-links .link {
             display: block;
             width: 100%;
-            padding: 0.7rem 0;
-          }
-          .logout-btn {
-            width: 100%;
-            text-align: left;
-            padding: 0.7rem 0;
+            padding: 0.6rem 0;
           }
         }
       `}</style>

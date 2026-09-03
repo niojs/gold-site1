@@ -123,6 +123,48 @@ export default function WashingPage() {
     }
   }, [selectedSite, fetchRecords]);
 
+  const onSave = useCallback(async () => {
+    let saved = 0;
+    for (const row of records) {
+      const isNew = String(row.id).startsWith('temp-') || String(row.id).startsWith('new_');
+      try {
+        if (isNew) {
+          const res = await fetch('/api/washing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              holeNumber: row.holeNumber,
+              interval: row.interval,
+              mass: row.mass === '' ? null : Number(row.mass),
+              volume: row.volume === '' ? null : Number(row.volume),
+              visualDescription: row.visualDescription,
+              site: selectedSite,
+            }),
+          });
+          if (res.ok) saved++;
+        } else {
+          const res = await fetch('/api/washing', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: row.id,
+              holeNumber: row.holeNumber,
+              interval: row.interval,
+              mass: row.mass === '' ? null : Number(row.mass),
+              volume: row.volume === '' ? null : Number(row.volume),
+              visualDescription: row.visualDescription,
+              site: selectedSite,
+            }),
+          });
+          if (res.ok) saved++;
+        }
+      } catch (e) { console.error(e); }
+    }
+    if (saved > 0) { showSuccess(`Сохранено: ${saved}`); fetchRecords(); }
+  }, [records, selectedSite, fetchRecords]);
+
   const onAddRow = useCallback(() => {
     setRecords(prev => [
       { id: 'new_' + Date.now(), holeNumber: '', interval: '', mass: '', volume: '', visualDescription: '', site: getSelectedSite(), creatorName: '' },
@@ -179,6 +221,8 @@ export default function WashingPage() {
         onAddRow={onAddRow}
         addRowLabel="+ Добавить строку"
         getRowId={params => params.data.id}
+        onSave={onSave}
+        saveLabel="Сохранить"
         height="65vh"
       />
     </div>

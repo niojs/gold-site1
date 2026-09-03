@@ -106,6 +106,26 @@ export default function GoldGrid({
           paginationPageSizeSelector={[25, 50, 100, 200]}
         />
       </div>
+      {onSave && (
+        <button
+          className="btn-gold"
+          onClick={onSave}
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            padding: '0.8rem 2rem',
+            fontSize: '1rem',
+            fontWeight: 700,
+            borderRadius: '12px',
+            boxShadow: '0 4px 24px rgba(212,175,55,0.4)',
+            zIndex: 1000,
+            cursor: 'pointer',
+          }}
+        >
+          {saveLabel || 'Сохранить'}
+        </button>
+      )}
       <style jsx global>{`
         .gold-grid {
           --ag-background-color: #111;
