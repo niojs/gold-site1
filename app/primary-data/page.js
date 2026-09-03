@@ -45,7 +45,10 @@ export default function PrimaryDataPage() {
       const res = await fetch('/api/primary-data');
       if (res.ok) {
         const data = await res.json();
-        setRecords(data.records || []);
+        const all = data.records || [];
+        const site = getSelectedSite();
+        const filtered = site ? all.filter(r => (r.work_area || '') === site) : all;
+        setRecords(filtered);
       }
     } catch (e) {
       console.error(e);

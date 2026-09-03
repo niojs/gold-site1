@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    const siteFilter = cookieStore.get('selected_site')?.value;
+    const useSiteFilter = siteFilter && siteFilter !== '__none__';
+
+    const pf = useSiteFilter ? ` WHERE work_area = $1` : '';
+    const sf = useSiteFilter ? ` WHERE site = $1` : '';
+
+    const params = useSiteFilter ? [siteFilter] : [];
+    const paramsDrill = useSiteFilter ? [siteFilter] : [];
+    const paramsField = useSiteFilter ? [siteFilter] : [];
+    const paramsWash = useSiteFilter ? [siteFilter] : [];
+    const paramsAssay = useSiteFilter ? [siteFilter] : [];
+
     const [
       primaryRes,
       drillingRes,
@@ -12,11 +26,11 @@ export async function GET() {
       sitesRes,
       usersRes,
     ] = await Promise.all([
-      query('SELECT COUNT(*) as total, work_area FROM primary_survey_data GROUP BY work_area'),
-      query('SELECT COUNT(*) as total, site, is_drilled FROM drilling_records GROUP BY site, is_drilled'),
-      query('SELECT COUNT(*) as total, site FROM field_data GROUP BY site'),
-      query('SELECT COUNT(*) as total, site, SUM(mass) as total_mass, SUM(volume) as total_volume FROM washing_data GROUP BY site'),
-      query('SELECT COUNT(*) as total, site, AVG(reserves) as avg_reserves, MAX(reserves) as max_reserves, SUM(sample_weight) as total_weight FROM assay_data GROUP BY site'),
+      query(`SELECT COUNT(*) as total, work_area FROM primary_survey_data${pf} GROUP BY work_area`, params),
+      query(`SELECT COUNT(*) as total, site, is_drilled FROM drilling_records${sf} GROUP BY site, is_drilled`, paramsDrill),
+      query(`SELECT COUNT(*) as total, site FROM field_data${sf} GROUP BY site`, paramsField),
+      query(`SELECT COUNT(*) as total, site, SUM(mass) as total_mass, SUM(volume) as total_volume FROM washing_data${sf} GROUP BY site`, paramsWash),
+      query(`SELECT COUNT(*) as total, site, AVG(reserves) as avg_reserves, MAX(reserves) as max_reserves, SUM(sample_weight) as total_weight FROM assay_data${sf} GROUP BY site`, paramsAssay),
       query('SELECT COUNT(*) as total FROM sites'),
       query('SELECT role, COUNT(*) as total FROM users GROUP BY role'),
     ]);
