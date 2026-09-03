@@ -32,6 +32,7 @@ export default function Navigation() {
   const getMenuItems = () => {
     const roleSpecific = {
       admin: [
+        { href: '/dashboard', label: '📊 Дашборд' },
         { href: '/primary-data', label: '📐 Первичные данные' },
         { href: '/admin/users', label: '👥 Пользователи' },
         { href: '/table', label: '📋 Все данные' },
@@ -39,6 +40,7 @@ export default function Navigation() {
         { href: '/import-export', label: '📤 Импорт/Экспорт' },
       ],
       chief_geologist: [
+        { href: '/dashboard', label: '📊 Дашборд' },
         { href: '/primary-data', label: '📐 Первичные данные' },
         { href: '/table', label: '📋 Все рабочие данные' },
         { href: '/map', label: '🗺️ Карта' },
@@ -67,7 +69,7 @@ export default function Navigation() {
   return (
     <nav className="nav-bar">
       <div className="nav-content">
-        <Link href={userRole ? (userRole === 'admin' || userRole === 'chief_geologist' ? '/primary-data' : '/map') : '/'} className="logo-link">
+        <Link href={userRole ? (userRole === 'admin' || userRole === 'chief_geologist' ? '/dashboard' : '/map') : '/'} className="logo-link">
           <span className="logo-icon">⚒️</span>
           <span className="logo-text">Gold Manager</span>
         </Link>

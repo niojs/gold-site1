@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const ROLE_REDIRECTS = {
-  admin: '/map',
-  chief_geologist: '/map',
+  admin: '/dashboard',
+  chief_geologist: '/dashboard',
   field_geologist: '/field-data',
   driller: '/drilling',
   washer: '/washing',
