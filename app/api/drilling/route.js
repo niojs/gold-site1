@@ -68,10 +68,10 @@ export async function POST(request) {
   }
 
   try {
-    const { site, date, holeNumber, diameter, startTime, endTime, brigade } = await request.json();
+    const { site, date, holeNumber, diameter, startTime, endTime, brigade, queue, isDrilled, coordinates } = await request.json();
 
-    if (!site || !date || !holeNumber || !diameter || !startTime || !endTime) {
-      return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 });
+    if (!holeNumber) {
+      return NextResponse.json({ error: 'Номер скважины обязателен' }, { status: 400 });
     }
 
     const id = crypto.randomUUID();
@@ -79,9 +79,9 @@ export async function POST(request) {
 
     await query(
       `INSERT INTO drilling_records 
-       (id, user_id, site, date, hole_number, diameter, start_time, end_time, created_at, created_by, brigade)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [id, sessionId, site, date, holeNumber, parseFloat(diameter), startTime, endTime, created_at, sessionId, brigade || null]
+       (id, user_id, site, date, hole_number, diameter, start_time, end_time, created_at, created_by, brigade, queue, is_drilled, coordinates)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [id, sessionId, site || null, date || null, holeNumber, diameter ? parseFloat(diameter) : null, startTime || null, endTime || null, created_at, sessionId, brigade || null, queue ? parseInt(queue) : null, isDrilled ? 1 : 0, coordinates || null]
     );
 
     return NextResponse.json({ success: true });
@@ -106,22 +106,22 @@ export async function PUT(request) {
   }
 
   try {
-    const { id, site, date, holeNumber, diameter, startTime, endTime, brigade } = await request.json();
+    const { id, site, date, holeNumber, diameter, startTime, endTime, brigade, queue, isDrilled, coordinates } = await request.json();
 
-    if (!id || !site || !date || !holeNumber || !diameter || !startTime || !endTime) {
-      return NextResponse.json({ error: 'Все поля обязательны' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
     }
 
     let queryText = `
       UPDATE drilling_records SET
         site = $1, date = $2, hole_number = $3, diameter = $4,
-        start_time = $5, end_time = $6, brigade = $7
-      WHERE id = $8
+        start_time = $5, end_time = $6, brigade = $7, queue = $8, is_drilled = $9, coordinates = $10
+      WHERE id = $11
     `;
-    const params = [site, date, holeNumber, parseFloat(diameter), startTime, endTime, brigade || null, id];
+    const params = [site || null, date || null, holeNumber, diameter ? parseFloat(diameter) : null, startTime || null, endTime || null, brigade || null, queue ? parseInt(queue) : null, isDrilled ? 1 : 0, coordinates || null, id];
 
     if (user?.role !== 'admin') {
-      queryText += ' AND user_id = $9';
+      queryText += ' AND user_id = $12';
       params.push(sessionId);
     }
 

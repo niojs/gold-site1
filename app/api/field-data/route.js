@@ -33,7 +33,7 @@ export async function GET() {
       records = result.rows;
 
       let primarySql = `SELECT p.*, u.username as creator_name, 'primary' as source,
-         CONCAT(p.latitude, ', ', longitude) as coordinates,
+         p.latitude || ', ' || longitude as coordinates,
          p.work_area as site, p.hole_number
          FROM primary_survey_data p
          LEFT JOIN users u ON p.user_id = u.id`;
@@ -59,7 +59,7 @@ export async function GET() {
       records = result.rows;
 
       let primarySql = `SELECT p.*, u.username as creator_name, 'primary' as source,
-         CONCAT(p.latitude, ', ', longitude) as coordinates,
+         p.latitude || ', ' || longitude as coordinates,
          p.work_area as site, p.hole_number
          FROM primary_survey_data p
          LEFT JOIN users u ON p.user_id = u.id`;

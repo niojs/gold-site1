@@ -57,7 +57,7 @@ export async function GET() {
     let primarySql = `
       SELECT
         id, work_area as site, work_area as name, hole_number,
-        CONCAT(latitude, ', ', longitude) as coordinates,
+        latitude || ', ' || longitude as coordinates,
         latitude, longitude, elevation, line_name,
         'primary' as type, 'Первичные' as layer
       FROM primary_survey_data
