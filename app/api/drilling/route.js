@@ -20,9 +20,9 @@ export async function GET() {
     let records = [];
 
     if (role === 'admin' || role === 'chief_geologist') {
-      let sql = `SELECT d.*, u.username as creator_name
-         FROM drilling_records d
-         LEFT JOIN users u ON d.created_by = u.id`;
+       let sql = `SELECT d.*, u.username as creator_name
+          FROM drilling_records d
+          LEFT JOIN users u ON COALESCE(d.created_by, d.user_id) = u.id`;
       const params = [];
       if (useSiteFilter) {
         sql += ` WHERE d.site = $1`;
@@ -33,9 +33,9 @@ export async function GET() {
       records = result.rows;
     } else if (role === 'driller') {
       let sql = `SELECT d.*, u.username as creator_name
-         FROM drilling_records d
-         LEFT JOIN users u ON d.created_by = u.id
-         WHERE d.user_id = $1`;
+          FROM drilling_records d
+          LEFT JOIN users u ON COALESCE(d.created_by, d.user_id) = u.id
+          WHERE d.user_id = $1`;
       const params = [sessionId];
       if (useSiteFilter) {
         sql += ` AND d.site = $2`;

@@ -34,10 +34,10 @@ export async function GET() {
   const useSiteFilter = siteFilter && siteFilter !== '__none__';
 
   try {
-    let drillingSql = `SELECT d.*, u.username as creator_name FROM drilling_records d LEFT JOIN users u ON d.created_by = u.id`;
-    let fieldSql = `SELECT f.*, u.username as creator_name FROM field_data f LEFT JOIN users u ON f.created_by = u.id`;
-    let washingSql = `SELECT w.*, u.username as creator_name FROM washing_data w LEFT JOIN users u ON w.created_by = u.id`;
-    let assaySql = `SELECT a.*, u.username as creator_name FROM assay_data a LEFT JOIN users u ON a.created_by = u.id`;
+    let drillingSql = `SELECT d.*, u.username as creator_name FROM drilling_records d LEFT JOIN users u ON COALESCE(d.created_by, d.user_id) = u.id`;
+    let fieldSql = `SELECT f.*, u.username as creator_name FROM field_data f LEFT JOIN users u ON COALESCE(f.created_by, f.user_id) = u.id`;
+    let washingSql = `SELECT w.*, u.username as creator_name FROM washing_data w LEFT JOIN users u ON COALESCE(w.created_by, w.user_id) = u.id`;
+    let assaySql = `SELECT a.*, u.username as creator_name FROM assay_data a LEFT JOIN users u ON COALESCE(a.created_by, a.user_id) = u.id`;
     let primarySql = `SELECT p.*, u.username as creator_name FROM primary_survey_data p LEFT JOIN users u ON p.user_id = u.id`;
     const whereClauses = [];
 
