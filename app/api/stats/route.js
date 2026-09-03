@@ -26,35 +26,35 @@ export async function GET() {
     const field = fieldRes.rows;
     const washing = washingRes.rows;
     const assay = assayRes.rows;
-    const sites = sitesRes.rows[0]?.total || 0;
+    const sites = Number(sitesRes.rows[0]?.total) || 0;
     const users = usersRes.rows;
 
     // Drilling stats per site
     const drillingBySite = {};
     for (const row of drilling) {
       if (!drillingBySite[row.site]) drillingBySite[row.site] = { total: 0, drilled: 0, planned: 0 };
-      drillingBySite[row.site].total += row.total;
-      if (row.is_drilled) drillingBySite[row.site].drilled = row.total;
-      else drillingBySite[row.site].planned = row.total;
+      drillingBySite[row.site].total += Number(row.total);
+      if (row.is_drilled === true || row.is_drilled === 1) drillingBySite[row.site].drilled += Number(row.total);
+      else drillingBySite[row.site].planned += Number(row.total);
     }
 
     // Primary data per site
     const primaryBySite = {};
     for (const row of primary) {
-      primaryBySite[row.work_area] = row.total;
+      primaryBySite[row.work_area] = Number(row.total);
     }
 
     // Washing stats
     const washingBySite = {};
     for (const row of washing) {
-      washingBySite[row.site] = { count: row.total, mass: parseFloat(row.total_mass) || 0, volume: parseFloat(row.total_volume) || 0 };
+      washingBySite[row.site] = { count: Number(row.total), mass: parseFloat(row.total_mass) || 0, volume: parseFloat(row.total_volume) || 0 };
     }
 
     // Assay stats
     const assayBySite = {};
     for (const row of assay) {
       assayBySite[row.site] = {
-        count: row.total,
+        count: Number(row.total),
         avgReserves: parseFloat(row.avg_reserves) || 0,
         maxReserves: parseFloat(row.max_reserves) || 0,
         totalWeight: parseFloat(row.total_weight) || 0,
@@ -64,16 +64,16 @@ export async function GET() {
     // Users by role
     const usersByRole = {};
     for (const row of users) {
-      usersByRole[row.role] = row.total;
+      usersByRole[row.role] = Number(row.total);
     }
 
-    // Totals
-    const totalPrimary = primary.reduce((s, r) => s + r.total, 0);
-    const totalDrilling = drilling.reduce((s, r) => s + r.total, 0);
-    const totalDrilled = drilling.filter(r => r.is_drilled).reduce((s, r) => s + r.total, 0);
-    const totalField = field.reduce((s, r) => s + r.total, 0);
-    const totalWashing = washing.reduce((s, r) => s + r.total, 0);
-    const totalAssay = assay.reduce((s, r) => s + r.total, 0);
+    // Totals - ensure all are numbers (BigInt fix for PostgreSQL)
+    const totalPrimary = primary.reduce((s, r) => s + Number(r.total), 0);
+    const totalDrilling = drilling.reduce((s, r) => s + Number(r.total), 0);
+    const totalDrilled = drilling.filter(r => r.is_drilled === true || r.is_drilled === 1).reduce((s, r) => s + Number(r.total), 0);
+    const totalField = field.reduce((s, r) => s + Number(r.total), 0);
+    const totalWashing = washing.reduce((s, r) => s + Number(r.total), 0);
+    const totalAssay = assay.reduce((s, r) => s + Number(r.total), 0);
 
     return NextResponse.json({
       totals: {
