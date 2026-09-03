@@ -55,9 +55,20 @@ export default function DrillingPage() {
   const columnDefs = [
     { headerName: 'Скважина', field: 'holeNumber', editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: availableHoles }, minWidth: 140 },
     { headerName: 'Участок', field: 'site', editable: false },
-    { headerName: 'Очередь', field: 'queue', editable: true, type: 'numericColumn' },
+    { headerName: 'Очередь', field: 'queue', editable: true, type: 'numericColumn',
+      valueFormatter: (params) => {
+        const v = params.value;
+        if (v === null || v === undefined || v === '') return '';
+        return String(v);
+      },
+    },
     { headerName: 'Пробурена', field: 'isDrilled', editable: true, cellEditor: 'agSelectCellEditor',
       cellEditorParams: { values: ['Да', 'Нет'] },
+      valueFormatter: (params) => {
+        const v = params.value;
+        if (v === 'Да' || v === 'Нет') return v;
+        return v ? 'Да' : 'Нет';
+      },
       valueSetter: (params) => { params.data.isDrilled = params.newValue; return true; },
     },
     { headerName: 'Диаметр', field: 'diameter', editable: true, type: 'numericColumn' },
