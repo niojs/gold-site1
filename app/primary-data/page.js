@@ -28,7 +28,7 @@ export default function PrimaryDataPage() {
     admin: 'Администратор',
     chief_geologist: 'Главный геолог',
     field_geologist: 'Полевой геолог',
-    driller: 'Бурильщик',
+    driller: 'Буровик',
     washer: 'Промывка',
     sampler: 'Пробы',
   };
