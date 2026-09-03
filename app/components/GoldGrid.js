@@ -71,6 +71,11 @@ export default function GoldGrid({
               Удалить выбранные
             </button>
           )}
+          {onSave && (
+            <button className="btn-gold" onClick={onSave} style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}>
+              {saveLabel || 'Сохранить'}
+            </button>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {ready && (
@@ -101,26 +106,6 @@ export default function GoldGrid({
           paginationPageSizeSelector={[25, 50, 100, 200]}
         />
       </div>
-      {onSave && (
-        <button
-          className="btn-gold"
-          onClick={onSave}
-          style={{
-            position: 'fixed',
-            bottom: '3.5rem',
-            right: '1.5rem',
-            padding: '0.7rem 1.8rem',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            borderRadius: '12px',
-            boxShadow: '0 4px 24px rgba(212,175,55,0.4)',
-            zIndex: 999,
-            cursor: 'pointer',
-          }}
-        >
-          {saveLabel || 'Сохранить'}
-        </button>
-      )}
       <style jsx global>{`
         .gold-grid {
           --ag-background-color: #111;
