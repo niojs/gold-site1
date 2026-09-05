@@ -4,7 +4,11 @@ import { query } from '../../../lib/db';
 export async function POST(request) {
   try {
     const { key } = await request.json();
-    if (key !== 'gold-seed-2026') {
+    const seedKey = process.env.SEED_KEY || 'gold-seed-2026';
+    if (!process.env.SEED_KEY) {
+      console.warn('⚠️ SEED_KEY не задан — используется ключ по умолчанию. Задайте SEED_KEY в env!');
+    }
+    if (key !== seedKey) {
       return NextResponse.json({ error: 'Invalid key' }, { status: 403 });
     }
 

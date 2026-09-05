@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
+import { logAudit } from '../../../../lib/audit';
 import bcrypt from 'bcryptjs';
 
 async function isAdmin() {
@@ -47,6 +48,15 @@ export async function POST(request) {
       [id, username, passwordHash, role, created_at]
     );
 
+    await logAudit({
+      userId: null,
+      username: 'admin',
+      action: 'create',
+      entity: 'user',
+      entityId: id,
+      details: `${username} (${role})`,
+    });
+
     return NextResponse.json({ id, username, role, created_at });
   } catch (error) {
     console.error('Ошибка создания пользователя:', error);
@@ -60,16 +70,49 @@ export async function PUT(request) {
   }
 
   try {
-    const { id, role } = await request.json();
+    const { id, role, password } = await request.json();
 
-    if (!id || !role) {
-      return NextResponse.json({ error: 'ID и роль обязательны' }, { status: 400 });
+    if (!id || (!role && !password)) {
+      return NextResponse.json({ error: 'ID и роль/пароль обязательны' }, { status: 400 });
     }
 
-    const result = await query('UPDATE users SET role = $1 WHERE id = $2 RETURNING id', [role, id]);
+    if (role) {
+      // NOTE: без RETURNING — SQLite-обёртка его не возвращает, смотрим rowCount.
+      const result = await query('UPDATE users SET role = $1 WHERE id = $2', [role, id]);
 
-    if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      }
+
+      await logAudit({
+        userId: null,
+        username: 'admin',
+        action: 'update',
+        entity: 'user',
+        entityId: id,
+        details: `смена роли → ${role}`,
+      });
+    }
+
+    if (password) {
+      if (String(password).length < 6) {
+        return NextResponse.json({ error: 'Новый пароль — минимум 6 символов' }, { status: 400 });
+      }
+      const hash = bcrypt.hashSync(password, 10);
+      const result = await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
+
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      }
+
+      await logAudit({
+        userId: null,
+        username: 'admin',
+        action: 'password',
+        entity: 'user',
+        entityId: id,
+        details: 'сброс пароля администратором',
+      });
     }
 
     return NextResponse.json({ success: true });
@@ -96,11 +139,20 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Нельзя удалить администратора' }, { status: 403 });
     }
 
-    const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    const result = await query('DELETE FROM users WHERE id = $1', [id]);
 
-    if (result.rows.length === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
     }
+
+    await logAudit({
+      userId: null,
+      username: 'admin',
+      action: 'delete',
+      entity: 'user',
+      entityId: id,
+      details: userCheck.rows[0]?.username || '',
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

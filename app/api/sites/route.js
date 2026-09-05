@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
+import { logAudit } from '../../../lib/audit';
 
 const CAN_MANAGE = ['admin', 'chief_geologist'];
 
@@ -86,6 +87,8 @@ export async function POST(request) {
     [id, trimmed, coordinates_wgs84 || null, coordinates_msk02 || null, coordinates_msk74 || null, coordinates_gsk2011 || null, description || null, new Date().toISOString()]
   );
 
+  await logAudit({ userId: user.id, username: user.username, action: 'create', entity: 'site', entityId: id, details: trimmed });
+
   return NextResponse.json({ id, success: true });
 }
 
@@ -116,6 +119,8 @@ export async function PUT(request) {
     [trimmed, coordinates_wgs84 || null, coordinates_msk02 || null, coordinates_msk74 || null, coordinates_gsk2011 || null, description || null, id]
   );
 
+  await logAudit({ userId: user.id, username: user.username, action: 'update', entity: 'site', entityId: id, details: trimmed });
+
   return NextResponse.json({ success: true });
 }
 
@@ -131,5 +136,6 @@ export async function DELETE(request) {
   if (!id) return NextResponse.json({ error: 'ID обязателен' }, { status: 400 });
 
   await query('DELETE FROM sites WHERE id = $1', [id]);
+  await logAudit({ userId: user.id, username: user.username, action: 'delete', entity: 'site', entityId: id, details: '' });
   return NextResponse.json({ success: true });
 }

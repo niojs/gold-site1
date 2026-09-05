@@ -18,12 +18,16 @@ export async function GET(request) {
   const table = searchParams.get('table');
   const format = searchParams.get('format') || 'xlsx';
 
+  // Уважаем выбранный участок (как весь остальной UI).
+  const siteFilter = cookieStore.get('selected_site')?.value;
+  const useSiteFilter = siteFilter && siteFilter !== '__none__';
+
   const tables = {
-    drilling: { name: 'drilling_records', label: 'Буровые работы' },
-    field: { name: 'field_data', label: 'Полевые данные' },
-    washing: { name: 'washing_data', label: 'Промывка' },
-    assay: { name: 'assay_data', label: 'Пробы' },
-    primary: { name: 'primary_survey_data', label: 'Первичное опробование' },
+    drilling: { name: 'drilling_records', label: 'Буровые работы', siteCol: 'site' },
+    field: { name: 'field_data', label: 'Полевые данные', siteCol: 'site' },
+    washing: { name: 'washing_data', label: 'Промывка', siteCol: 'site' },
+    assay: { name: 'assay_data', label: 'Пробы', siteCol: 'site' },
+    primary: { name: 'primary_survey_data', label: 'Первичное опробование', siteCol: 'work_area' },
   };
 
   // ===== РУССКИЕ НАЗВАНИЯ КОЛОНОК =====
@@ -104,8 +108,16 @@ export async function GET(request) {
     // ===== СОБИРАЕМ ДАННЫЕ =====
     let sheets = []; // [{ key, label, data }]
 
+    const fetchTable = async (key) => {
+      const t = tables[key];
+      if (useSiteFilter) {
+        return query(`SELECT * FROM ${t.name} WHERE ${t.siteCol} = $1`, [siteFilter]);
+      }
+      return query(`SELECT * FROM ${t.name}`);
+    };
+
     if (table && tables[table]) {
-      const result = await query(`SELECT * FROM ${tables[table].name}`);
+      const result = await fetchTable(table);
       sheets.push({
         key: table,
         label: tables[table].label,
@@ -113,7 +125,7 @@ export async function GET(request) {
       });
     } else {
       for (const key of Object.keys(tables)) {
-        const result = await query(`SELECT * FROM ${tables[key].name}`);
+        const result = await fetchTable(key);
         sheets.push({
           key,
           label: tables[key].label,

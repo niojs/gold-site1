@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
+import { logAudit } from '../../../../lib/audit';
 
 // Проверка: авторизован и админ/главный геолог
 async function checkAccess() {
@@ -11,7 +12,7 @@ async function checkAccess() {
     return { error: 'Не авторизован', status: 401 };
   }
 
-  const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
+  const userResult = await query('SELECT id, username, role FROM users WHERE id = $1', [sessionId]);
   const user = userResult.rows[0];
   const role = user?.role;
 
@@ -19,7 +20,7 @@ async function checkAccess() {
     return { error: 'Доступ запрещен', status: 403 };
   }
 
-  return { role };
+  return { role, userId: user.id, username: user.username };
 }
 
 // ===== ПОЛУЧИТЬ ВСЕ ДАННЫЕ =====
@@ -95,6 +96,7 @@ export async function PUT(request) {
     let result;
 
     if (type === 'drilling') {
+      const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
       result = await query(
         `UPDATE drilling_records SET
           site = $1, date = $2, hole_number = $3,
@@ -110,7 +112,7 @@ export async function PUT(request) {
           record.start_time,
           record.end_time,
           record.queue ? parseInt(record.queue) : null,
-          record.is_drilled === true || record.is_drilled === 'true',
+          toBool(record.is_drilled),
           record.project_coordinates || '',
           record.true_coordinates || '',
           record.brigade || null,
@@ -198,6 +200,15 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
     }
 
+    await logAudit({
+      userId: access.userId,
+      username: access.username,
+      action: 'update',
+      entity: type,
+      entityId: record.id,
+      details: record.hole_number || '',
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Ошибка обновления:', error);
@@ -237,6 +248,15 @@ export async function DELETE(request) {
     if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
     }
+
+    await logAudit({
+      userId: access.userId,
+      username: access.username,
+      action: 'delete',
+      entity: type,
+      entityId: id,
+      details: '',
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

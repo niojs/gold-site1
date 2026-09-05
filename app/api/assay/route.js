@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
+import { sendTelegram } from '../../../lib/notify';
 
 export async function GET() {
   try {
@@ -90,6 +91,20 @@ export async function POST(request) {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [id, sessionId, holeNumber, interval, reservesNum, marks || '', weightNum, created_at, sessionId, site || null]
     );
+
+    // Уведомление о богатой пробе — только если настроен Telegram, иначе no-op.
+    // Никогда не влияет на успех вставки.
+    try {
+      const threshold = parseFloat(process.env.ASSAY_NOTIFY_MIN || '5');
+      if (process.env.TELEGRAM_BOT_TOKEN && reservesNum >= threshold) {
+        const who = await query('SELECT username FROM users WHERE id = $1', [sessionId]);
+        await sendTelegram(
+          `⚗️ <b>Богатая проба</b>\nСкважина: ${holeNumber}\nИнтервал: ${interval}\nЗапасы: ${reservesNum}\n${marks || ''}\nУчасток: ${site || '—'}\nАвтор: ${who.rows[0]?.username || '?'}`
+        );
+      }
+    } catch (e) {
+      console.error('Notify error:', e.message);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

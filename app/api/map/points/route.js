@@ -171,7 +171,7 @@ export async function PATCH(request) {
 
     if (type === 'drilling') {
       const mainCoords = true_coordinates || project_coordinates || '';
-      await query(
+      const result = await query(
         `UPDATE drilling_records
          SET site = $1, hole_number = $2, queue = $3, is_drilled = $4,
              project_coordinates = $5, true_coordinates = $6, coordinates = $7,
@@ -190,11 +190,17 @@ export async function PATCH(request) {
           id,
         ]
       );
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
+      }
     } else {
-      await query(
+      const result = await query(
         `UPDATE field_data SET site = $1, hole_number = $2, coordinates = $3, coord_system = $4 WHERE id = $5`,
         [name, hole_number || '', true_coordinates || project_coordinates || '', cs, id]
       );
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Запись не найдена' }, { status: 404 });
+      }
     }
 
     return NextResponse.json({ success: true });

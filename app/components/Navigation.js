@@ -58,7 +58,8 @@ export default function Navigation() {
     };
 
     if (!userRole) return [{ href: '/', label: 'Войти' }];
-    return roleSpecific[userRole] || [];
+    const items = roleSpecific[userRole] || [];
+    return [...items, { href: '/profile', label: 'Профиль' }];
   };
 
   const menuItems = getMenuItems();
