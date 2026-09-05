@@ -1,0 +1,233 @@
+.gold-grid {
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  --ag-background-color: #111 !important;
+  --ag-foreground-color: #e0dcc8 !important;
+  --ag-header-background-color: #1a1712 !important;
+  --ag-header-foreground-color: #d4af37 !important;
+  --ag-odd-row-background-color: #151310 !important;
+  --ag-row-hover-color: rgba(212, 175, 55, 0.08) !important;
+  --ag-selected-row-background-color: rgba(212, 175, 55, 0.15) !important;
+  --ag-range-selection-background-color: rgba(212, 175, 55, 0.1) !important;
+  --ag-font-family: 'Segoe UI', system-ui, sans-serif !important;
+  --ag-border-color: rgba(212, 175, 55, 0.15) !important;
+  --ag-secondary-border-color: rgba(212, 175, 55, 0.15) !important;
+  --ag-input-focus-color: #d4af37 !important;
+  --ag-input-focus-border-color: #d4af37 !important;
+  --ag-alpine-active-color: #d4af37 !important;
+  --ag-checkbox-checked-color: #d4af37 !important;
+  --ag-checkbox-unchecked-color: #d4af37 !important;
+  --ag-row-height: 42px !important;
+}
+
+/* Background: all containers */
+.gold-grid .ag-root-wrapper,
+.gold-grid .ag-root,
+.gold-grid .ag-body-viewport,
+.gold-grid .ag-body-horizontal-scroll-viewport,
+.gold-grid .ag-pinned-left-cols-container,
+.gold-grid .ag-pinned-right-cols-container,
+.gold-grid .ag-full-width-container,
+.gold-grid .ag-center-cols-container,
+.gold-grid .ag-center-cols-clipper {
+  background-color: #111 !important;
+}
+
+/* Header */
+.gold-grid .ag-header,
+.gold-grid .ag-header-row,
+.gold-grid .ag-header-row-column,
+.gold-grid .ag-header-row-column-group,
+.gold-grid .ag-pinned-left-header,
+.gold-grid .ag-pinned-right-header {
+  background: linear-gradient(180deg, #211b12 0%, #1a1712 100%) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25) !important;
+}
+.gold-grid .ag-header-cell {
+  background: transparent !important;
+  color: #d4af37 !important;
+}
+.gold-grid .ag-header-cell-label .ag-header-cell-text {
+  color: #d4af37 !important;
+  font-weight: 600 !important;
+}
+.gold-grid .ag-header-icon {
+  color: #d4af37 !important;
+}
+
+/* Rows */
+.gold-grid .ag-row {
+  background-color: #111 !important;
+}
+.gold-grid .ag-row-even {
+  background-color: #111 !important;
+}
+.gold-grid .ag-row-odd {
+  background-color: #151310 !important;
+}
+
+/* Cells — the critical part */
+.gold-grid .ag-cell {
+  background-color: #111 !important;
+  color: #e0dcc8 !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.07) !important;
+  border-right: 1px solid rgba(212, 175, 55, 0.06) !important;
+  line-height: 42px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+.gold-grid .ag-row-even .ag-cell {
+  background-color: #111 !important;
+  color: #e0dcc8 !important;
+}
+.gold-grid .ag-row-odd .ag-cell {
+  background-color: #151310 !important;
+  color: #e0dcc8 !important;
+}
+.gold-grid .ag-row-odd .ag-cell-wrapper {
+  background-color: #151310 !important;
+}
+
+/* Hover */
+.gold-grid .ag-row-hover,
+.gold-grid .ag-row-hover .ag-cell {
+  background-color: rgba(212, 175, 55, 0.08) !important;
+  color: #e0dcc8 !important;
+}
+
+/* Selected */
+.gold-grid .ag-row-selected,
+.gold-grid .ag-row-selected .ag-cell {
+  background-color: rgba(212, 175, 55, 0.16) !important;
+  color: #e0dcc8 !important;
+}
+
+/* Focus */
+.gold-grid .ag-cell-focus,
+.gold-grid .ag-cell-focus:focus,
+.gold-grid .ag-cell-range-selected {
+  border-color: #d4af37 !important;
+  outline: none !important;
+}
+
+/* Editing */
+.gold-grid .ag-cell-inline-editing .ag-cell {
+  background-color: #0d0b08 !important;
+  color: #e0dcc8 !important;
+  border: 1px solid #d4af37 !important;
+}
+.gold-grid .ag-cell-inline-editing input,
+.gold-grid .ag-cell-inline-editing select {
+  background: #0d0b08 !important;
+  color: #e0dcc8 !important;
+  border: 1px solid #d4af37 !important;
+}
+
+/* Pagination */
+.gold-grid .ag-paging-panel,
+.gold-grid .ag-paging-row-summary-panel,
+.gold-grid .ag-paging-page-size-panel {
+  background: #1a1712 !important;
+  color: #8a7e6a !important;
+  border-top: 1px solid rgba(212, 175, 55, 0.15) !important;
+}
+.gold-grid .ag-paging-panel select,
+.gold-grid .ag-paging-panel input {
+  background: #111 !important;
+  color: #e0dcc8 !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  border-radius: 6px;
+}
+.gold-grid .ag-paging-button {
+  color: #d4af37 !important;
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+.gold-grid .ag-paging-button:hover {
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+.gold-grid .ag-paging-button[disabled] {
+  opacity: 0.3;
+}
+
+/* Empty overlay */
+.gold-grid .ag-overlay-no-rows-wrapper {
+  background: #111 !important;
+  color: #8a7e6a !important;
+}
+
+/* Checkboxes */
+.gold-grid .ag-checkbox-input-wrapper::after {
+  border-color: #d4af37;
+}
+.gold-grid .ag-checkbox-input-wrapper.ag-checked::after {
+  background-color: #d4af37;
+  border-color: #d4af37;
+}
+
+/* Floating filter */
+.gold-grid .ag-floating-filter-input input {
+  background: #1a1712;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 4px;
+  color: #e0dcc8;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+}
+.gold-grid .ag-floating-filter-input input:focus {
+  border-color: #d4af37;
+}
+
+/* Scrollbar */
+.gold-grid .ag-body-viewport::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.gold-grid .ag-body-viewport::-webkit-scrollbar-track {
+  background: #111;
+}
+.gold-grid .ag-body-viewport::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 3px;
+}
+
+/* Popup/select */
+.gold-grid .ag-select-list,
+.gold-grid .ag-popup-child {
+  background: #1a1712 !important;
+  border-color: rgba(212, 175, 55, 0.25);
+}
+.gold-grid .ag-select-option,
+.gold-grid .ag-popup-child .ag-list-item {
+  color: #e0dcc8 !important;
+}
+.gold-grid .ag-select-option:hover,
+.gold-grid .ag-popup-child .ag-list-item:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+.gold-grid .ag-select-option-selected,
+.gold-grid .ag-popup-child .ag-list-item-selected {
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+}
+
+/* Tool panel */
+.gold-grid .ag-column-select-column,
+.gold-grid .ag-tool-panel {
+  background: #1a1712 !important;
+  color: #e0dcc8 !important;
+}
+
+/* Menu */
+.gold-grid .ag-menu {
+  background: #1a1712 !important;
+}
+.gold-grid .ag-filter-toolpanel-body {
+  background: #111 !important;
+}
+
+/* Cell range highlight */
+.gold-grid .ag-cell-range-selected {
+  background-color: rgba(212, 175, 55, 0.1) !important;
+}
+.gold-grid .ag-cell-range-selected .ag-cell {
+  background-color: rgba(212, 175, 55, 0.15) !important;
+}
