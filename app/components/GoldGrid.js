@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -86,7 +86,7 @@ export default function GoldGrid({
         </div>
       </div>
       <div
-        className="ag-theme-alpine-dark gold-grid"
+        className="ag-theme-quartz gold-grid"
         style={{ flex: 1, width: '100%', borderRadius: '12px', overflow: 'hidden' }}
       >
         <AgGridReact
@@ -109,25 +109,83 @@ export default function GoldGrid({
       <style jsx global>{`
         .gold-grid {
           --ag-background-color: #111;
+          --ag-foreground-color: #e0dcc8;
           --ag-header-background-color: #1a1712;
+          --ag-header-foreground-color: #d4af37;
           --ag-odd-row-background-color: #151310;
           --ag-row-hover-color: rgba(212, 175, 55, 0.08);
           --ag-selected-row-background-color: rgba(212, 175, 55, 0.15);
           --ag-range-selection-background-color: rgba(212, 175, 55, 0.1);
           --ag-font-family: 'Segoe UI', system-ui, sans-serif;
-          --ag-text-color: #e0dcc8;
-          --ag-foreground-color: #e0dcc8;
-          --ag-secondary-foreground-color: #e0dcc8;
           --ag-border-color: rgba(212, 175, 55, 0.15);
-          --ag-input-focus-color: #d4af37;
-          --ag-input-text-color: #e0dcc8;
-          --ag-input-background-color: #1a1712;
-          --ag-input-border-color: rgba(212, 175, 55, 0.3);
           --ag-secondary-border-color: rgba(212, 175, 55, 0.15);
-          --ag-popup-shadow: 0 4px 20px rgba(0,0,0,0.8);
+          --ag-input-focus-color: #d4af37;
+          --ag-input-focus-border-color: #d4af37;
           --ag-alpine-active-color: #d4af37;
+          --ag-checkbox-checked-color: #d4af37;
+          --ag-checkbox-unchecked-color: #d4af37;
           color-scheme: dark;
           border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* Фон: корень, шапка, строки, ячейки, пагинация (явно, поверх темы) */
+        .gold-grid .ag-root-wrapper,
+        .gold-grid .ag-root,
+        .gold-grid .ag-body-viewport,
+        .gold-grid .ag-body-horizontal-scroll-viewport,
+        .gold-grid .ag-pinned-left-cols-container,
+        .gold-grid .ag-pinned-right-cols-container,
+        .gold-grid .ag-full-width-container {
+          background: #111 !important;
+        }
+        .gold-grid .ag-header,
+        .gold-grid .ag-header-row,
+        .gold-grid .ag-pinned-left-header,
+        .gold-grid .ag-pinned-right-header {
+          background: linear-gradient(180deg, #211b12 0%, #1a1712 100%) !important;
+          border-bottom: 1px solid rgba(212, 175, 55, 0.25) !important;
+        }
+        .gold-grid .ag-row,
+        .gold-grid .ag-row-even,
+        .gold-grid .ag-row-odd,
+        .gold-grid .ag-cell {
+          background: #111 !important;
+          color: #e0dcc8 !important;
+          border-bottom: 1px solid rgba(212, 175, 55, 0.07) !important;
+        }
+        .gold-grid .ag-row-odd,
+        .gold-grid .ag-row-odd .ag-cell {
+          background: #151310 !important;
+        }
+        .gold-grid .ag-row-hover,
+        .gold-grid .ag-row-hover .ag-cell {
+          background: rgba(212, 175, 55, 0.08) !important;
+        }
+        .gold-grid .ag-row-selected,
+        .gold-grid .ag-row-selected .ag-cell {
+          background: rgba(212, 175, 55, 0.16) !important;
+        }
+        .gold-grid .ag-cell-focus,
+        .gold-grid .ag-cell-range-selected {
+          border-color: #d4af37 !important;
+        }
+        .gold-grid .ag-paging-panel,
+        .gold-grid .ag-paging-row-summary-panel,
+        .gold-grid .ag-paging-page-size-panel {
+          background: #1a1712 !important;
+          color: #8a7e6a !important;
+          border-top: 1px solid rgba(212, 175, 55, 0.15) !important;
+        }
+        .gold-grid .ag-paging-panel select,
+        .gold-grid .ag-paging-panel input {
+          background: #111 !important;
+          color: #e0dcc8 !important;
+          border: 1px solid rgba(212, 175, 55, 0.25) !important;
+          border-radius: 6px;
+        }
+        .gold-grid .ag-overlay-no-rows-wrapper {
+          background: #111 !important;
+          color: #8a7e6a !important;
         }
 
         .gold-grid .ag-header-cell-label .ag-header-cell-text {
@@ -205,6 +263,13 @@ export default function GoldGrid({
         .gold-grid .ag-popup-child .ag-list-item-selected {
           background: rgba(212, 175, 55, 0.15);
           color: #d4af37;
+        }
+
+        .gold-grid .ag-cell-inline-editing input,
+        .gold-grid .ag-cell-inline-editing select {
+          background: #0d0b08 !important;
+          color: #e0dcc8 !important;
+          border: 1px solid #d4af37 !important;
         }
 
         .gold-grid .ag-overlay-no-rows-wrapper {
