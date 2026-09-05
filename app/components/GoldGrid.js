@@ -152,10 +152,26 @@ const OVERRIDE_CSS = `
   background: #1a1712 !important;
   color: #e0dcc8 !important;
 }
+.gd-grid,
+.gd-grid .ag-root-wrapper,
+.gd-grid .ag-root,
+.gd-grid .ag-body,
+.gd-grid .ag-body-viewport,
+.gd-grid .ag-body-horizontal-scroll-viewport,
+.gd-grid .ag-center-cols-container,
+.gd-grid .ag-center-cols-clipper,
+.gd-grid .ag-pinned-left-cols-container,
+.gd-grid .ag-pinned-right-cols-container,
+.gd-grid .ag-full-width-container {
+  background-color: #111 !important;
+}
 .gd-grid .ag-root-wrapper {
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 12px;
   overflow: hidden;
+}
+.gd-grid * {
+  scrollbar-color: rgba(212, 175, 55, 0.3) #111;
 }
 `;
 
@@ -170,18 +186,26 @@ function ensureStylesheet() {
 
 function forceColorStyles(gridEl) {
   if (!gridEl) return;
+
+  const darkBg = '#111';
+  const viewports = gridEl.querySelectorAll(
+    '.ag-root-wrapper, .ag-root, .ag-body, .ag-body-viewport, ' +
+    '.ag-body-horizontal-scroll-viewport, .ag-center-cols-container, ' +
+    '.ag-center-cols-clipper, .ag-pinned-left-cols-container, ' +
+    '.ag-pinned-right-cols-container, .ag-full-width-container'
+  );
+  viewports.forEach(el => { el.style.backgroundColor = darkBg; });
+
   const allCells = gridEl.querySelectorAll('.ag-cell, .ag-header-cell, .ag-cell-wrapper, .ag-row span');
-  allCells.forEach(c => {
-    c.style.color = '#e0dcc8';
-  });
+  allCells.forEach(c => { c.style.color = '#e0dcc8'; });
+
   const headerCells = gridEl.querySelectorAll('.ag-header-cell');
-  headerCells.forEach(c => {
-    c.style.color = '#d4af37';
-  });
+  headerCells.forEach(c => { c.style.color = '#d4af37'; });
+
   const rows = gridEl.querySelectorAll('.ag-row');
-  rows.forEach((row, i) => {
+  rows.forEach((row) => {
     const isOdd = row.classList.contains('ag-row-odd');
-    row.style.backgroundColor = isOdd ? '#151310' : '#111';
+    row.style.backgroundColor = isOdd ? '#151310' : darkBg;
     row.style.color = '#e0dcc8';
   });
 }
