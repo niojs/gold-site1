@@ -1,12 +1,57 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+const GOLD_CSS = `
+html body .wg-grid .ag-header {
+  background: linear-gradient(180deg, #faf6ea, #f3edda) !important;
+  border-bottom: 2px solid #d4af37 !important;
+}
+html body .wg-grid .ag-header-cell {
+  color: #8a6d1f !important;
+  font-weight: 600 !important;
+}
+html body .wg-grid .ag-row-hover {
+  background-color: rgba(212,175,55,0.07) !important;
+}
+html body .wg-grid .ag-row-selected {
+  background-color: rgba(212,175,55,0.14) !important;
+}
+html body .wg-grid .ag-cell-focus:focus {
+  border-color: #d4af37 !important;
+}
+html body .wg-grid .ag-checkbox-input-wrapper.ag-checked::after {
+  background-color: #d4af37 !important;
+  border-color: #d4af37 !important;
+}
+html body .wg-grid .ag-paging-button {
+  color: #8a6d1f !important;
+}
+html body .wg-grid .ag-paging-button:hover {
+  background: rgba(212,175,55,0.1) !important;
+  border-color: #d4af37 !important;
+}
+html body .wg-grid .ag-root-wrapper {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(212,175,55,0.2) !important;
+}
+`;
+
+function ensureStylesheet() {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('wg-gold-css')) return;
+  const el = document.createElement('style');
+  el.id = 'wg-gold-css';
+  el.textContent = GOLD_CSS;
+  document.head.appendChild(el);
+}
 
 export default function GoldGrid({
   columnDefs,
@@ -23,6 +68,8 @@ export default function GoldGrid({
 }) {
   const gridRef = useRef(null);
   const [ready, setReady] = useState(false);
+
+  useEffect(() => { ensureStylesheet(); }, []);
 
   const defaultColDef = {
     editable: true,
@@ -86,7 +133,7 @@ export default function GoldGrid({
         </div>
       </div>
       <div
-        className="ag-theme-alpine"
+        className="ag-theme-alpine wg-grid"
         style={{
           flex: 1,
           width: '100%',
