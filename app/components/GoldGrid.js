@@ -8,92 +8,133 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const OVERRIDE_CSS = `
-.gd-grid .ag-cell,
-.gd-grid .ag-row-even .ag-cell,
-.gd-grid .ag-row-odd .ag-cell,
-.gd-grid .ag-row .ag-cell,
-.gd-grid .ag-row-even,
-.gd-grid .ag-row-odd,
-.gd-grid .ag-row,
-.gd-grid .ag-cell-wrapper {
-  color: #e0dcc8 !important;
+const GOLD_OVERRIDES = `
+/* ===== CONTAINERS ===== */
+.gd-grid,
+.gd-grid .ag-root-wrapper,
+.gd-grid .ag-root,
+.gd-grid .ag-body,
+.gd-grid .ag-body-viewport,
+.gd-grid .ag-body-horizontal-scroll-viewport,
+.gd-grid .ag-center-cols-container,
+.gd-grid .ag-center-cols-clipper,
+.gd-grid .ag-pinned-left-cols-container,
+.gd-grid .ag-pinned-right-cols-container,
+.gd-grid .ag-pinned-left-header,
+.gd-grid .ag-pinned-right-header,
+.gd-grid .ag-full-width-container,
+.gd-grid .ag-overlay-no-rows-wrapper {
   background-color: #111 !important;
 }
-.gd-grid .ag-row-odd,
-.gd-grid .ag-row-odd .ag-cell,
-.gd-grid .ag-row-odd .ag-cell-wrapper {
-  background-color: #151310 !important;
+
+/* ===== HEADER ===== */
+.gd-grid .ag-header {
+  background: linear-gradient(180deg, #211b12, #1a1712) !important;
+  border-bottom: 1px solid rgba(212,175,55,0.25) !important;
 }
-.gd-grid .ag-row-hover,
-.gd-grid .ag-row-hover .ag-cell {
-  background-color: rgba(212, 175, 55, 0.08) !important;
-  color: #e0dcc8 !important;
-}
-.gd-grid .ag-row-selected,
-.gd-grid .ag-row-selected .ag-cell {
-  background-color: rgba(212, 175, 55, 0.16) !important;
-  color: #e0dcc8 !important;
-}
-.gd-grid .ag-header,
 .gd-grid .ag-header-row,
-.gd-grid .ag-header-row-column,
-.gd-grid .ag-pinned-left-header,
-.gd-grid .ag-pinned-right-header {
-  background: linear-gradient(180deg, #211b12 0%, #1a1712 100%) !important;
-}
-.gd-grid .ag-header-cell {
+.gd-grid .ag-header-row-column {
   background: transparent !important;
+}
+.gd-grid .ag-header-cell,
+.gd-grid .ag-header-cell-label,
+.gd-grid .ag-header-cell-text {
   color: #d4af37 !important;
 }
 .gd-grid .ag-header-cell-label .ag-header-cell-text {
-  color: #d4af37 !important;
   font-weight: 600 !important;
 }
 .gd-grid .ag-header-icon {
   color: #d4af37 !important;
 }
-.gd-grid .ag-cell-focus,
-.gd-grid .ag-cell-focus:focus,
-.gd-grid .ag-cell-range-selected {
+
+/* ===== ROWS ===== */
+.gd-grid .ag-row {
+  background-color: #111 !important;
+  color: #e0dcc8 !important;
+}
+.gd-grid .ag-row-even {
+  background-color: #111 !important;
+}
+.gd-grid .ag-row-odd {
+  background-color: #151310 !important;
+}
+.gd-grid .ag-row:hover,
+.gd-grid .ag-row-hover {
+  background-color: rgba(212,175,55,0.08) !important;
+}
+.gd-grid .ag-row-selected {
+  background-color: rgba(212,175,55,0.16) !important;
+}
+
+/* ===== CELLS — maximum specificity ===== */
+html body .gd-grid .ag-cell,
+html body .gd-grid .ag-cell-wrapper,
+html body .gd-grid .ag-row-even .ag-cell,
+html body .gd-grid .ag-row-odd .ag-cell,
+html body .gd-grid .ag-row .ag-cell,
+html body .gd-grid .ag-row-even .ag-cell-wrapper,
+html body .gd-grid .ag-row-odd .ag-cell-wrapper {
+  color: #e0dcc8 !important;
+  background-color: #111 !important;
+  border-bottom: 1px solid rgba(212,175,55,0.07) !important;
+  border-right: 1px solid rgba(212,175,55,0.06) !important;
+}
+html body .gd-grid .ag-row-odd .ag-cell,
+html body .gd-grid .ag-row-odd .ag-cell-wrapper {
+  background-color: #151310 !important;
+}
+html body .gd-grid .ag-row:hover .ag-cell,
+html body .gd-grid .ag-row-hover .ag-cell {
+  background-color: rgba(212,175,55,0.08) !important;
+  color: #e0dcc8 !important;
+}
+html body .gd-grid .ag-row-selected .ag-cell {
+  background-color: rgba(212,175,55,0.16) !important;
+  color: #e0dcc8 !important;
+}
+
+/* ===== FOCUS / EDIT ===== */
+html body .gd-grid .ag-cell-focus,
+html body .gd-grid .ag-cell-focus:focus,
+html body .gd-grid .ag-cell-range-selected {
   border-color: #d4af37 !important;
   outline: none !important;
 }
-.gd-grid .ag-cell-inline-editing .ag-cell,
-.gd-grid .ag-cell-inline-editing input,
-.gd-grid .ag-cell-inline-editing select {
+html body .gd-grid .ag-cell-inline-editing input,
+html body .gd-grid .ag-cell-inline-editing select {
   background: #0d0b08 !important;
   color: #e0dcc8 !important;
   border: 1px solid #d4af37 !important;
 }
+
+/* ===== PAGINATION ===== */
 .gd-grid .ag-paging-panel,
 .gd-grid .ag-paging-row-summary-panel,
 .gd-grid .ag-paging-page-size-panel {
   background: #1a1712 !important;
   color: #8a7e6a !important;
-  border-top: 1px solid rgba(212, 175, 55, 0.15) !important;
+  border-top: 1px solid rgba(212,175,55,0.15) !important;
 }
 .gd-grid .ag-paging-panel select,
 .gd-grid .ag-paging-panel input {
   background: #111 !important;
   color: #e0dcc8 !important;
-  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  border: 1px solid rgba(212,175,55,0.25) !important;
   border-radius: 6px;
 }
 .gd-grid .ag-paging-button {
   color: #d4af37 !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  border: 1px solid rgba(212,175,55,0.2) !important;
 }
 .gd-grid .ag-paging-button:hover {
-  background: rgba(212, 175, 55, 0.1) !important;
+  background: rgba(212,175,55,0.1) !important;
 }
 .gd-grid .ag-paging-button[disabled] {
   opacity: 0.3;
 }
-.gd-grid .ag-overlay-no-rows-wrapper {
-  background: #111 !important;
-  color: #8a7e6a !important;
-}
+
+/* ===== CHECKBOXES ===== */
 .gd-grid .ag-checkbox-input-wrapper::after {
   border-color: #d4af37;
 }
@@ -101,9 +142,11 @@ const OVERRIDE_CSS = `
   background-color: #d4af37;
   border-color: #d4af37;
 }
+
+/* ===== FLOATING FILTER ===== */
 .gd-grid .ag-floating-filter-input input {
   background: #1a1712;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212,175,55,0.2);
   border-radius: 4px;
   color: #e0dcc8;
   padding: 4px 6px;
@@ -112,6 +155,8 @@ const OVERRIDE_CSS = `
 .gd-grid .ag-floating-filter-input input:focus {
   border-color: #d4af37;
 }
+
+/* ===== SCROLLBAR ===== */
 .gd-grid .ag-body-viewport::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -120,13 +165,18 @@ const OVERRIDE_CSS = `
   background: #111;
 }
 .gd-grid .ag-body-viewport::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(212,175,55,0.3);
   border-radius: 3px;
 }
+.gd-grid * {
+  scrollbar-color: rgba(212,175,55,0.3) #111;
+}
+
+/* ===== POPUPS / MENUS ===== */
 .gd-grid .ag-select-list,
 .gd-grid .ag-popup-child {
   background: #1a1712 !important;
-  border-color: rgba(212, 175, 55, 0.25);
+  border-color: rgba(212,175,55,0.25);
 }
 .gd-grid .ag-select-option,
 .gd-grid .ag-popup-child .ag-list-item {
@@ -134,11 +184,11 @@ const OVERRIDE_CSS = `
 }
 .gd-grid .ag-select-option:hover,
 .gd-grid .ag-popup-child .ag-list-item:hover {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(212,175,55,0.1);
 }
 .gd-grid .ag-select-option-selected,
 .gd-grid .ag-popup-child .ag-list-item-selected {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(212,175,55,0.15);
   color: #d4af37;
 }
 .gd-grid .ag-menu {
@@ -152,26 +202,12 @@ const OVERRIDE_CSS = `
   background: #1a1712 !important;
   color: #e0dcc8 !important;
 }
-.gd-grid,
-.gd-grid .ag-root-wrapper,
-.gd-grid .ag-root,
-.gd-grid .ag-body,
-.gd-grid .ag-body-viewport,
-.gd-grid .ag-body-horizontal-scroll-viewport,
-.gd-grid .ag-center-cols-container,
-.gd-grid .ag-center-cols-clipper,
-.gd-grid .ag-pinned-left-cols-container,
-.gd-grid .ag-pinned-right-cols-container,
-.gd-grid .ag-full-width-container {
-  background-color: #111 !important;
-}
+
+/* ===== BORDER ===== */
 .gd-grid .ag-root-wrapper {
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212,175,55,0.2);
   border-radius: 12px;
   overflow: hidden;
-}
-.gd-grid * {
-  scrollbar-color: rgba(212, 175, 55, 0.3) #111;
 }
 `;
 
@@ -180,34 +216,8 @@ function ensureStylesheet() {
   if (document.getElementById('gold-grid-overrides')) return;
   const el = document.createElement('style');
   el.id = 'gold-grid-overrides';
-  el.textContent = OVERRIDE_CSS;
+  el.textContent = GOLD_OVERRIDES;
   document.head.appendChild(el);
-}
-
-function forceColorStyles(gridEl) {
-  if (!gridEl) return;
-
-  const darkBg = '#111';
-  const viewports = gridEl.querySelectorAll(
-    '.ag-root-wrapper, .ag-root, .ag-body, .ag-body-viewport, ' +
-    '.ag-body-horizontal-scroll-viewport, .ag-center-cols-container, ' +
-    '.ag-center-cols-clipper, .ag-pinned-left-cols-container, ' +
-    '.ag-pinned-right-cols-container, .ag-full-width-container'
-  );
-  viewports.forEach(el => { el.style.backgroundColor = darkBg; });
-
-  const allCells = gridEl.querySelectorAll('.ag-cell, .ag-header-cell, .ag-cell-wrapper, .ag-row span');
-  allCells.forEach(c => { c.style.color = '#e0dcc8'; });
-
-  const headerCells = gridEl.querySelectorAll('.ag-header-cell');
-  headerCells.forEach(c => { c.style.color = '#d4af37'; });
-
-  const rows = gridEl.querySelectorAll('.ag-row');
-  rows.forEach((row) => {
-    const isOdd = row.classList.contains('ag-row-odd');
-    row.style.backgroundColor = isOdd ? '#151310' : darkBg;
-    row.style.color = '#e0dcc8';
-  });
 }
 
 export default function GoldGrid({
@@ -224,40 +234,11 @@ export default function GoldGrid({
   height = '65vh',
 }) {
   const gridRef = useRef(null);
-  const containerRef = useRef(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     ensureStylesheet();
   }, []);
-
-  const onGridReady = useCallback(() => {
-    setReady(true);
-    requestAnimationFrame(() => {
-      if (containerRef.current) {
-        forceColorStyles(containerRef.current);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new MutationObserver(() => {
-      forceColorStyles(containerRef.current);
-    });
-    observer.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    requestAnimationFrame(() => forceColorStyles(containerRef.current));
-  }, [rowData]);
 
   const defaultColDef = {
     editable: true,
@@ -321,7 +302,6 @@ export default function GoldGrid({
         </div>
       </div>
       <div
-        ref={containerRef}
         className="ag-theme-alpine gd-grid"
         style={{
           flex: 1,
@@ -335,7 +315,7 @@ export default function GoldGrid({
           rowData={rowData}
           columnDefs={finalColumnDefs}
           defaultColDef={defaultColDef}
-          onGridReady={onGridReady}
+          onGridReady={() => setReady(true)}
           onCellValueChanged={onCellValueChanged}
           rowSelection={rowSelection}
           getRowId={getRowId}
