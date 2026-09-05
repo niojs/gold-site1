@@ -6,3 +6,10 @@ gold.db
 gold.db-shm
 gold.db-wal
 *.log
+server.log
+server.err.log
+node-v*-win-x64/
+.tools/
+mingit.zip
+node20.zip
+node22.zip

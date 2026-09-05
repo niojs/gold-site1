@@ -108,8 +108,8 @@ export default function Navigation() {
           align-items: center;
           max-width: 1400px;
           margin: 0 auto;
-          height: 48px;
-          gap: 1.5rem;
+          height: 56px;
+          gap: 2rem;
         }
 
         .logo-link {
@@ -131,7 +131,7 @@ export default function Navigation() {
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 0.15rem;
+          gap: 0.6rem;
           flex: 1;
           overflow-x: auto;
           scrollbar-width: none;
@@ -141,10 +141,12 @@ export default function Navigation() {
 
         .nav-link {
           color: #8a7e6a;
-          padding: 0.35rem 0.7rem;
-          font-size: 0.8rem;
+          padding: 0.5rem 0.9rem;
+          margin-right: 0.15rem;
+          font-size: 0.85rem;
           white-space: nowrap;
-          border-radius: 6px;
+          flex-shrink: 0;
+          border-radius: 8px;
           text-decoration: none;
           transition: all 0.15s;
           cursor: pointer;
