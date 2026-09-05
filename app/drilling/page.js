@@ -77,6 +77,7 @@ export default function DrillingPage() {
     { headerName: 'Дата', field: 'date', editable: true },
     { headerName: 'Бригада', field: 'brigade', editable: true },
     { headerName: 'Координаты', field: 'coordinates', editable: true },
+    { headerName: 'Создал', field: 'creatorName', editable: false, minWidth: 100 },
   ];
 
   const rowData = records.map(r => ({
@@ -91,6 +92,7 @@ export default function DrillingPage() {
     date: r.date || '',
     brigade: r.brigade || '',
     coordinates: r.coordinates || '',
+    creatorName: r.creator_name || '',
   }));
 
   const onCellValueChanged = useCallback(async (e) => {
