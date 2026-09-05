@@ -14,31 +14,23 @@ export async function POST(request) {
       );
     }
 
-    console.log('🔍 Ищем пользователя:', username);
-
     const result = await query('SELECT * FROM users WHERE username = $1', [username]);
     const user = result.rows[0];
 
     if (!user) {
-      console.log('❌ Пользователь не найден:', username);
       return NextResponse.json(
         { error: 'Неверный логин или пароль' },
         { status: 401 }
       );
     }
-
-    console.log('✅ Пользователь найден:', user.username);
 
     const isValid = bcrypt.compareSync(password, user.password_hash);
     if (!isValid) {
-      console.log('❌ Пароль не совпадает для:', username);
       return NextResponse.json(
         { error: 'Неверный логин или пароль' },
         { status: 401 }
       );
     }
-
-    console.log('✅ Пароль верный, создаём сессию');
 
     const cookieStore = await cookies();
     cookieStore.set('session', user.id, {
@@ -56,7 +48,6 @@ export async function POST(request) {
       redirect: '/select-site',
     });
   } catch (error) {
-    console.error('🔥 Auth error:', error);
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },
       { status: 500 }

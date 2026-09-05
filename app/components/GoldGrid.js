@@ -37,7 +37,7 @@ export default function GoldGrid({
     if (!onDeleteRows || !gridRef.current?.api) return;
     const selected = gridRef.current.api.getSelectedRows();
     if (selected.length === 0) return;
-    if (!confirm(`Удалить ${selected.length} записей?`)) return;
+    if (!confirm('Удалить ' + selected.length + ' записей?')) return;
     onDeleteRows(selected);
   }, [onDeleteRows]);
 
@@ -87,7 +87,33 @@ export default function GoldGrid({
       </div>
       <div
         className="ag-theme-alpine gold-grid"
-        style={{ flex: 1, width: '100%', borderRadius: '12px', overflow: 'hidden' }}
+        data-gold="1"
+        style={{
+          flex: 1,
+          width: '100%',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          '--ag-background-color': '#111111',
+          '--ag-foreground-color': '#e0dcc8',
+          '--ag-header-background-color': '#1a1712',
+          '--ag-header-foreground-color': '#d4af37',
+          '--ag-odd-row-background-color': '#151310',
+          '--ag-row-hover-color': 'rgba(212, 175, 55, 0.08)',
+          '--ag-selected-row-background-color': 'rgba(212, 175, 55, 0.15)',
+          '--ag-range-selection-background-color': 'rgba(212, 175, 55, 0.1)',
+          '--ag-font-family': "'Segoe UI', system-ui, sans-serif",
+          '--ag-border-color': 'rgba(212, 175, 55, 0.15)',
+          '--ag-secondary-border-color': 'rgba(212, 175, 55, 0.15)',
+          '--ag-input-focus-color': '#d4af37',
+          '--ag-input-focus-border-color': '#d4af37',
+          '--ag-alpine-active-color': '#d4af37',
+          '--ag-checkbox-checked-color': '#d4af37',
+          '--ag-checkbox-unchecked-color': '#d4af37',
+          '--ag-odd-row-background-color': '#151310',
+          '--ag-row-hover-color': 'rgba(212, 175, 55, 0.08)',
+          '--ag-selected-row-background-color': 'rgba(212, 175, 55, 0.15)',
+          colorScheme: 'dark',
+        }}
       >
         <AgGridReact
           ref={gridRef}
@@ -107,122 +133,125 @@ export default function GoldGrid({
         />
       </div>
       <style jsx global>{`
-        .gold-grid {
-          --ag-background-color: #111;
-          --ag-foreground-color: #e0dcc8;
-          --ag-header-background-color: #1a1712;
-          --ag-header-foreground-color: #d4af37;
-          --ag-odd-row-background-color: #151310;
-          --ag-row-hover-color: rgba(212, 175, 55, 0.08);
-          --ag-selected-row-background-color: rgba(212, 175, 55, 0.15);
-          --ag-range-selection-background-color: rgba(212, 175, 55, 0.1);
-          --ag-font-family: 'Segoe UI', system-ui, sans-serif;
-          --ag-border-color: rgba(212, 175, 55, 0.15);
-          --ag-secondary-border-color: rgba(212, 175, 55, 0.15);
-          --ag-input-focus-color: #d4af37;
-          --ag-input-focus-border-color: #d4af37;
-          --ag-alpine-active-color: #d4af37;
-          --ag-checkbox-checked-color: #d4af37;
-          --ag-checkbox-unchecked-color: #d4af37;
-          color-scheme: dark;
+        [data-gold="1"] {
           border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
-        /* Фон: корень, шапка, строки, ячейки, пагинация (явно, поверх темы) */
-        .gold-grid .ag-root-wrapper,
-        .gold-grid .ag-root,
-        .gold-grid .ag-body-viewport,
-        .gold-grid .ag-body-horizontal-scroll-viewport,
-        .gold-grid .ag-pinned-left-cols-container,
-        .gold-grid .ag-pinned-right-cols-container,
-        .gold-grid .ag-full-width-container {
-          background: #111 !important;
+        [data-gold="1"] .ag-root-wrapper,
+        [data-gold="1"] .ag-root,
+        [data-gold="1"] .ag-body-viewport,
+        [data-gold="1"] .ag-body-horizontal-scroll-viewport,
+        [data-gold="1"] .ag-pinned-left-cols-container,
+        [data-gold="1"] .ag-pinned-right-cols-container,
+        [data-gold="1"] .ag-full-width-container,
+        [data-gold="1"] .ag-center-cols-container {
+          background-color: #111 !important;
+          color: #e0dcc8 !important;
         }
-        .gold-grid .ag-header,
-        .gold-grid .ag-header-row,
-        .gold-grid .ag-pinned-left-header,
-        .gold-grid .ag-pinned-right-header {
+
+        [data-gold="1"] .ag-header,
+        [data-gold="1"] .ag-header-row,
+        [data-gold="1"] .ag-header-row-column,
+        [data-gold="1"] .ag-pinned-left-header,
+        [data-gold="1"] .ag-pinned-right-header,
+        [data-gold="1"] .ag-header-cell {
           background: linear-gradient(180deg, #211b12 0%, #1a1712 100%) !important;
           border-bottom: 1px solid rgba(212, 175, 55, 0.25) !important;
+          color: #d4af37 !important;
         }
-        .gold-grid .ag-row,
-        .gold-grid .ag-row-even,
-        .gold-grid .ag-row-odd,
-        .gold-grid .ag-cell {
-          background: #111 !important;
+        [data-gold="1"] .ag-header-cell-label .ag-header-cell-text {
+          color: #d4af37 !important;
+          font-weight: 600;
+        }
+        [data-gold="1"] .ag-header-icon {
+          color: #d4af37 !important;
+        }
+
+        [data-gold="1"] .ag-row,
+        [data-gold="1"] .ag-row-even,
+        [data-gold="1"] .ag-row-odd {
+          background-color: #111 !important;
+          color: #e0dcc8 !important;
+        }
+        [data-gold="1"] .ag-row-odd {
+          background-color: #151310 !important;
+        }
+        [data-gold="1"] .ag-row-odd .ag-cell {
+          background-color: #151310 !important;
+          color: #e0dcc8 !important;
+        }
+        [data-gold="1"] .ag-row-even .ag-cell {
+          background-color: #111 !important;
+          color: #e0dcc8 !important;
+        }
+
+        [data-gold="1"] .ag-cell {
+          background-color: #111 !important;
           color: #e0dcc8 !important;
           border-bottom: 1px solid rgba(212, 175, 55, 0.07) !important;
+          border-right: 1px solid rgba(212, 175, 55, 0.06) !important;
         }
-        .gold-grid .ag-row-odd,
-        .gold-grid .ag-row-odd .ag-cell {
-          background: #151310 !important;
+
+        [data-gold="1"] .ag-row-hover .ag-cell,
+        [data-gold="1"] .ag-row-hover {
+          background-color: rgba(212, 175, 55, 0.08) !important;
+          color: #e0dcc8 !important;
         }
-        .gold-grid .ag-row-hover,
-        .gold-grid .ag-row-hover .ag-cell {
-          background: rgba(212, 175, 55, 0.08) !important;
+        [data-gold="1"] .ag-row-selected .ag-cell,
+        [data-gold="1"] .ag-row-selected {
+          background-color: rgba(212, 175, 55, 0.16) !important;
+          color: #e0dcc8 !important;
         }
-        .gold-grid .ag-row-selected,
-        .gold-grid .ag-row-selected .ag-cell {
-          background: rgba(212, 175, 55, 0.16) !important;
-        }
-        .gold-grid .ag-cell-focus,
-        .gold-grid .ag-cell-range-selected {
+
+        [data-gold="1"] .ag-cell-focus,
+        [data-gold="1"] .ag-cell-range-selected {
           border-color: #d4af37 !important;
         }
-        .gold-grid .ag-paging-panel,
-        .gold-grid .ag-paging-row-summary-panel,
-        .gold-grid .ag-paging-page-size-panel {
+        [data-gold="1"] .ag-cell-focus:focus,
+        [data-gold="1"] .ag-cell-inline-editing .ag-cell {
+          border-color: #d4af37 !important;
+          outline: none !important;
+        }
+
+        [data-gold="1"] .ag-paging-panel,
+        [data-gold="1"] .ag-paging-row-summary-panel,
+        [data-gold="1"] .ag-paging-page-size-panel {
           background: #1a1712 !important;
           color: #8a7e6a !important;
           border-top: 1px solid rgba(212, 175, 55, 0.15) !important;
         }
-        .gold-grid .ag-paging-panel select,
-        .gold-grid .ag-paging-panel input {
+        [data-gold="1"] .ag-paging-panel select,
+        [data-gold="1"] .ag-paging-panel input {
           background: #111 !important;
           color: #e0dcc8 !important;
           border: 1px solid rgba(212, 175, 55, 0.25) !important;
           border-radius: 6px;
         }
-        .gold-grid .ag-overlay-no-rows-wrapper {
+        [data-gold="1"] .ag-paging-button {
+          color: #d4af37 !important;
+          border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        }
+        [data-gold="1"] .ag-paging-button:hover {
+          background: rgba(212, 175, 55, 0.1) !important;
+        }
+        [data-gold="1"] .ag-paging-button[disabled] {
+          opacity: 0.3;
+        }
+
+        [data-gold="1"] .ag-overlay-no-rows-wrapper {
           background: #111 !important;
           color: #8a7e6a !important;
         }
 
-        .gold-grid .ag-header-cell-label .ag-header-cell-text {
-          color: #d4af37 !important;
-          font-weight: 600;
-        }
-        .gold-grid .ag-header-icon {
-          color: #d4af37 !important;
-        }
-
-        .gold-grid .ag-cell {
-          border-right: 1px solid rgba(212, 175, 55, 0.06);
-        }
-
-        .gold-grid .ag-paging-panel {
-          border-top: 1px solid rgba(212, 175, 55, 0.15);
-        }
-        .gold-grid .ag-paging-button {
-          color: #d4af37;
-          border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        .gold-grid .ag-paging-button:hover {
-          background: rgba(212, 175, 55, 0.1);
-        }
-        .gold-grid .ag-paging-button[disabled] {
-          opacity: 0.3;
-        }
-
-        .gold-grid .ag-checkbox-input-wrapper::after {
+        [data-gold="1"] .ag-checkbox-input-wrapper::after {
           border-color: #d4af37;
         }
-        .gold-grid .ag-checkbox-input-wrapper.ag-checked::after {
+        [data-gold="1"] .ag-checkbox-input-wrapper.ag-checked::after {
           background-color: #d4af37;
           border-color: #d4af37;
         }
 
-        .gold-grid .ag-floating-filter-input input {
+        [data-gold="1"] .ag-floating-filter-input input {
           background: #1a1712;
           border: 1px solid rgba(212, 175, 55, 0.2);
           border-radius: 4px;
@@ -230,50 +259,59 @@ export default function GoldGrid({
           padding: 4px 6px;
           font-size: 0.8rem;
         }
-        .gold-grid .ag-floating-filter-input input:focus {
+        [data-gold="1"] .ag-floating-filter-input input:focus {
           border-color: #d4af37;
         }
 
-        .gold-grid .ag-body-viewport::-webkit-scrollbar {
+        [data-gold="1"] .ag-body-viewport::-webkit-scrollbar {
           width: 6px;
           height: 6px;
         }
-        .gold-grid .ag-body-viewport::-webkit-scrollbar-track {
+        [data-gold="1"] .ag-body-viewport::-webkit-scrollbar-track {
           background: #111;
         }
-        .gold-grid .ag-body-viewport::-webkit-scrollbar-thumb {
+        [data-gold="1"] .ag-body-viewport::-webkit-scrollbar-thumb {
           background: rgba(212, 175, 55, 0.3);
           border-radius: 3px;
         }
 
-        .gold-grid .ag-select-list,
-        .gold-grid .ag-popup-child {
-          background: #1a1712;
+        [data-gold="1"] .ag-select-list,
+        [data-gold="1"] .ag-popup-child {
+          background: #1a1712 !important;
           border-color: rgba(212, 175, 55, 0.25);
         }
-        .gold-grid .ag-select-option,
-        .gold-grid .ag-popup-child .ag-list-item {
-          color: #e0dcc8;
+        [data-gold="1"] .ag-select-option,
+        [data-gold="1"] .ag-popup-child .ag-list-item {
+          color: #e0dcc8 !important;
         }
-        .gold-grid .ag-select-option:hover,
-        .gold-grid .ag-popup-child .ag-list-item:hover {
+        [data-gold="1"] .ag-select-option:hover,
+        [data-gold="1"] .ag-popup-child .ag-list-item:hover {
           background: rgba(212, 175, 55, 0.1);
         }
-        .gold-grid .ag-select-option-selected,
-        .gold-grid .ag-popup-child .ag-list-item-selected {
+        [data-gold="1"] .ag-select-option-selected,
+        [data-gold="1"] .ag-popup-child .ag-list-item-selected {
           background: rgba(212, 175, 55, 0.15);
           color: #d4af37;
         }
 
-        .gold-grid .ag-cell-inline-editing input,
-        .gold-grid .ag-cell-inline-editing select {
+        [data-gold="1"] .ag-cell-inline-editing input,
+        [data-gold="1"] .ag-cell-inline-editing select {
           background: #0d0b08 !important;
           color: #e0dcc8 !important;
           border: 1px solid #d4af37 !important;
         }
 
-        .gold-grid .ag-overlay-no-rows-wrapper {
-          color: #8a7e6a;
+        [data-gold="1"] .ag-column-select-column,
+        [data-gold="1"] .ag-tool-panel {
+          background: #1a1712 !important;
+          color: #e0dcc8 !important;
+        }
+
+        [data-gold="1"] .ag-menu {
+          background: #1a1712 !important;
+        }
+        [data-gold="1"] .ag-filter-toolpanel-body {
+          background: #111 !important;
         }
       `}</style>
     </div>
