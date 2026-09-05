@@ -111,7 +111,11 @@ export async function GET(request) {
     const fetchTable = async (key) => {
       const t = tables[key];
       if (useSiteFilter) {
-        return query(`SELECT * FROM ${t.name} WHERE ${t.siteCol} = $1`, [siteFilter]);
+        // Строки без участка ни к какому участку не относятся — не теряем их.
+        return query(
+          `SELECT * FROM ${t.name} WHERE ${t.siteCol} = $1 OR ${t.siteCol} IS NULL OR ${t.siteCol} = ''`,
+          [siteFilter]
+        );
       }
       return query(`SELECT * FROM ${t.name}`);
     };
@@ -134,26 +138,24 @@ export async function GET(request) {
       }
     }
 
-    const hasData = sheets.some((s) => s.data.length > 0);
-    if (!hasData) {
-      return new Response('Нет данных для экспорта', { status: 404 });
-    }
-
-    const fileName = table ? tables[table].label : 'Все данные';
+    const fileName = table
+      ? tables[table].label + (useSiteFilter ? ` (${siteFilter})` : '')
+      : 'Все данные' + (useSiteFilter ? ` (${siteFilter})` : '');
 
     // ===== ФОРМАТ CSV =====
     if (format === 'csv') {
       let csvContent = '';
 
       for (const sheet of sheets) {
-        if (sheet.data.length === 0) continue;
+        const headers = sheet.data.length > 0
+          ? Object.keys(sheet.data[0])
+          : Object.values(COLUMN_LABELS[sheet.key]);
 
         // Заголовок секции (если экспортируем несколько таблиц)
         if (!table) {
           csvContent += `${sheet.label}\n`;
         }
 
-        const headers = Object.keys(sheet.data[0]);
         csvContent += headers.join(';') + '\n';
 
         for (const row of sheet.data) {
@@ -183,14 +185,17 @@ export async function GET(request) {
     const workbook = XLSX.utils.book_new();
 
     for (const sheet of sheets) {
-      if (sheet.data.length === 0) continue;
-      const worksheet = XLSX.utils.json_to_sheet(sheet.data);
+      const headers = Object.values(COLUMN_LABELS[sheet.key]);
+      const worksheet = sheet.data.length > 0
+        ? XLSX.utils.json_to_sheet(sheet.data)
+        : XLSX.utils.aoa_to_sheet([headers]);
 
       // Автоширина колонок
-      const cols = Object.keys(sheet.data[0]).map((key) => {
+      const sample = sheet.data.length > 0 ? sheet.data : [Object.fromEntries(headers.map((h) => [h, '']))];
+      const cols = Object.keys(sample[0]).map((key) => {
         const maxLen = Math.max(
           key.length,
-          ...sheet.data.map((row) => (row[key] ? String(row[key]).length : 0))
+          ...sample.map((row) => (row[key] ? String(row[key]).length : 0))
         );
         return { wch: Math.min(maxLen + 2, 40) };
       });
