@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { toWgs84, fromWgs84, parseCoords, coordsToString, COORD_SYSTEMS, detectSystem } from '../../lib/coordinates';
+import { toWgs84, fromWgs84, parseCoords, coordsToString, formatForSystem, COORD_SYSTEMS, detectSystem } from '../../lib/coordinates';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -76,11 +76,11 @@ function getAllCoordDisplays(point) {
       if (sys === 'WGS-84') continue;
       const converted = fromWgs84(sys, [parsed[0], parsed[1]]);
       if (converted) {
-        displays.push({ system: sys, value: coordsToString(converted[0], converted[1], 2) });
+        displays.push({ system: sys, value: formatForSystem(sys, converted[0], converted[1]) });
       }
     }
   } else {
-    displays.push({ system, value: coordsToString(parsed[0], parsed[1], 2) });
+    displays.push({ system, value: formatForSystem(system, parsed[0], parsed[1]) });
     const wgs = toWgs84(system, parsed);
     if (wgs) {
       displays.push({ system: 'WGS-84', value: coordsToString(wgs[0], wgs[1], 6) });
@@ -88,7 +88,7 @@ function getAllCoordDisplays(point) {
         if (sys === 'WGS-84' || sys === system) continue;
         const converted = fromWgs84(sys, wgs);
         if (converted) {
-          displays.push({ system: sys, value: coordsToString(converted[0], converted[1], 2) });
+          displays.push({ system: sys, value: formatForSystem(sys, converted[0], converted[1]) });
         }
       }
     }
