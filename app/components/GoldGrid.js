@@ -4,7 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -86,7 +86,7 @@ export default function GoldGrid({
         </div>
       </div>
       <div
-        className="ag-theme-quartz gold-grid"
+        className="ag-theme-alpine gold-grid"
         style={{ flex: 1, width: '100%', borderRadius: '12px', overflow: 'hidden' }}
       >
         <AgGridReact
