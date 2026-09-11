@@ -20,7 +20,6 @@ export default function UsersPage() {
     { value: 'admin', label: 'Администратор' },
     { value: 'chief_geologist', label: 'Главный геолог' },
     { value: 'field_geologist', label: 'Полевой геолог' },
-    { value: 'driller', label: 'Буровщик' },
     { value: 'washer', label: 'Отдел промывки' },
     { value: 'sampler', label: 'Отдувщик' },
   ];

@@ -7,7 +7,6 @@ const ROLE_LABELS = {
   admin: 'Администратор',
   chief_geologist: 'Главный геолог',
   field_geologist: 'Полевой геолог',
-  driller: 'Буровик',
   washer: 'Промывка',
   sampler: 'Пробы',
 };

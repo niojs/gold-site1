@@ -31,19 +31,6 @@ export async function GET() {
       sql += ` ORDER BY d.created_at DESC`;
       const result = await query(sql, params);
       records = result.rows;
-    } else if (role === 'driller') {
-      let sql = `SELECT d.*, u.username as creator_name
-          FROM drilling_records d
-          LEFT JOIN users u ON COALESCE(d.created_by, d.user_id) = u.id
-          WHERE d.user_id = $1`;
-      const params = [sessionId];
-      if (useSiteFilter) {
-        sql += ` AND d.site = $2`;
-        params.push(siteFilter);
-      }
-      sql += ` ORDER BY d.created_at DESC`;
-      const result = await query(sql, params);
-      records = result.rows;
     }
 
     return NextResponse.json(records);
@@ -63,7 +50,7 @@ export async function POST(request) {
 
   const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
   const user = userResult.rows[0];
-  if (user?.role !== 'driller' && user?.role !== 'admin') {
+  if (user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
 
@@ -101,7 +88,7 @@ export async function PUT(request) {
 
   const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
   const user = userResult.rows[0];
-  if (user?.role !== 'driller' && user?.role !== 'admin') {
+  if (user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
 
@@ -148,7 +135,7 @@ export async function DELETE(request) {
 
   const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
   const user = userResult.rows[0];
-  if (user?.role !== 'driller' && user?.role !== 'admin') {
+  if (user?.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
 

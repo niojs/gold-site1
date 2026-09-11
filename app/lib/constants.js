@@ -2,7 +2,6 @@ export const ROLES = {
   admin: 'admin',
   chief_geologist: 'chief_geologist',
   field_geologist: 'field_geologist',
-  driller: 'driller',
   washer: 'washer',
   sampler: 'sampler',
 };
@@ -11,7 +10,6 @@ export const ROLE_LABELS = {
   admin: 'Администратор',
   chief_geologist: 'Главный геолог',
   field_geologist: 'Полевой геолог',
-  driller: 'Буровик',
   washer: 'Промывка',
   sampler: 'Пробы',
 };
@@ -20,7 +18,6 @@ export const ROLE_ICONS = {
   admin: '👑',
   chief_geologist: '🔬',
   field_geologist: '📝',
-  driller: '⛏️',
   washer: '🧪',
   sampler: '⚗️',
 };
@@ -29,7 +26,6 @@ export const ROLE_REDIRECTS = {
   admin: '/dashboard',
   chief_geologist: '/dashboard',
   field_geologist: '/field-data',
-  driller: '/drilling',
   washer: '/washing',
   sampler: '/assay',
 };

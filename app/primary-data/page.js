@@ -28,7 +28,6 @@ export default function PrimaryDataPage() {
     admin: 'Администратор',
     chief_geologist: 'Главный геолог',
     field_geologist: 'Полевой геолог',
-    driller: 'Буровик',
     washer: 'Промывка',
     sampler: 'Пробы',
   };
@@ -61,7 +60,7 @@ export default function PrimaryDataPage() {
       const res = await fetch('/api/admin/users');
       if (res.ok) {
         const data = await res.json();
-        setUsers(data.filter(u => ['driller', 'field_geologist', 'washer', 'sampler'].includes(u.role)));
+        setUsers(data.filter(u => ['field_geologist', 'washer', 'sampler'].includes(u.role)));
       }
     } catch (e) { console.error(e); }
   }

@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
 
-const CAN_EDIT = ['admin', 'driller', 'chief_geologist', 'field_geologist'];
-const CAN_VIEW_MAP = ['admin', 'driller', 'chief_geologist', 'field_geologist'];
+const CAN_EDIT = ['admin', 'chief_geologist', 'field_geologist'];
+const CAN_VIEW_MAP = ['admin', 'chief_geologist', 'field_geologist'];
 
 async function getCurrentUser(sessionId) {
   if (!sessionId) return null;

@@ -148,7 +148,6 @@ export default function DashboardPage() {
               admin: 'Администраторы',
               chief_geologist: 'Главные геологи',
               field_geologist: 'Полевые геологи',
-              driller: 'Буровик',
               washer: 'Промывка',
               sampler: 'Пробы',
             };
@@ -156,7 +155,6 @@ export default function DashboardPage() {
               admin: '👑',
               chief_geologist: '🔬',
               field_geologist: '📝',
-              driller: '⛏️',
               washer: '🧪',
               sampler: '⚗️',
             };

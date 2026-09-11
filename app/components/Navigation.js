@@ -49,10 +49,6 @@ export default function Navigation() {
         { href: '/field-data', label: 'Полевые' },
         { href: '/map', label: 'Карта' },
       ],
-      driller: [
-        { href: '/drilling', label: 'Буровые' },
-        { href: '/map', label: 'Карта' },
-      ],
       washer: [{ href: '/washing', label: 'Промывка' }],
       sampler: [{ href: '/assay', label: 'Пробы' }],
     };

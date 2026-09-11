@@ -6,7 +6,6 @@ const ROLE_REDIRECTS = {
   admin: '/dashboard',
   chief_geologist: '/dashboard',
   field_geologist: '/field-data',
-  driller: '/drilling',
   washer: '/washing',
   sampler: '/assay',
 };
@@ -15,7 +14,6 @@ const ROLE_LABELS = {
   admin: 'Администратор',
   chief_geologist: 'Главный геолог',
   field_geologist: 'Полевой геолог',
-  driller: 'Буровик',
   washer: 'Промывка',
   sampler: 'Пробы',
 };
@@ -98,7 +96,6 @@ export default function useAuth({ redirectToLogin = false, redirectToSite = fals
     roleLabel: ROLE_LABELS[user?.role] || user?.role || '',
     isAdmin: user?.role === 'admin',
     isChief: user?.role === 'chief_geologist',
-    isDriller: user?.role === 'driller',
     isWasher: user?.role === 'washer',
     isSampler: user?.role === 'sampler',
     isFieldGeologist: user?.role === 'field_geologist',

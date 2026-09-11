@@ -7,7 +7,6 @@ const ROLE_REDIRECTS = {
   admin: '/dashboard',
   chief_geologist: '/dashboard',
   field_geologist: '/field-data',
-  driller: '/drilling',
   washer: '/washing',
   sampler: '/assay',
 };
@@ -16,7 +15,6 @@ const ROLE_LABELS = {
   admin: 'Администратор',
   chief_geologist: 'Главный геолог',
   field_geologist: 'Полевой геолог',
-  driller: 'Буровик',
   washer: 'Промывка',
   sampler: 'Пробы',
 };
