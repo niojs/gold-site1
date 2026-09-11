@@ -60,6 +60,16 @@ html body .wg-grid .ag-root-wrapper {
 html body .wg-grid .col-divider {
   border-right: 1px solid rgba(138,109,31,0.18) !important;
 }
+html body .wg-grid .ag-column-group-icon {
+  display: none !important;
+}
+html body .wg-grid .ag-header-row-column-group .ag-header-cell-wrapper {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+html body .wg-grid .ag-column-group {
+  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
+}
 `;
 
 function ensureStylesheet() {

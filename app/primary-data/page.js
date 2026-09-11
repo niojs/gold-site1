@@ -376,17 +376,6 @@ export default function PrimaryDataPage() {
 
       {activeTab === 'data' && (
         <div>
-          <style>{`
-            .wg-grid .ag-header-cell.ag-column-group .ag-header-cell-label {
-              justify-content: center !important;
-            }
-            .wg-grid .ag-column-group-icon {
-              display: none !important;
-            }
-            .wg-grid .ag-column-group {
-              border-bottom: 1px solid rgba(212,175,55,0.3);
-            }
-          `}</style>
           {loading ? (
             <div style={{ color: '#d4af37', textAlign: 'center', padding: '2rem' }}>Загрузка...</div>
           ) : (
