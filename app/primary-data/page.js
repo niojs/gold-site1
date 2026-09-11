@@ -319,19 +319,20 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor' },
-    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80 },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80 },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor' },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, minWidth: 90, cellEditor: 'agTextCellEditor', flex: 0 },
+    { headerName: 'Линия', field: 'line_name', editable: true, width: 100, minWidth: 100, flex: 0 },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90, minWidth: 90, flex: 0 },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 120, minWidth: 120, cellEditor: 'agTextCellEditor', flex: 0 },
     {
       headerName: 'Проектные координаты',
+      headerClass: 'coord-group-header',
       children: [
-        { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
-        { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
-        { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
+        { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 150, minWidth: 150, cellEditor: 'agTextCellEditor', flex: 0 },
+        { headerName: 'WGS-84', field: 'wgs84', editable: true, width: 170, minWidth: 170, cellEditor: 'agTextCellEditor', flex: 0 },
+        { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 150, minWidth: 150, cellEditor: 'agTextCellEditor', flex: 0 },
       ],
     },
-    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 80 },
+    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 100, minWidth: 100, flex: 0 },
   ];
 
   const getRowId = useCallback((params) => params.data.id, []);
@@ -396,8 +397,6 @@ export default function PrimaryDataPage() {
                 sortable: false,
                 filter: false,
                 suppressHeaderMenuButton: true,
-                wrapHeaderText: true,
-                flex: 1,
               }}
             />
           )}
