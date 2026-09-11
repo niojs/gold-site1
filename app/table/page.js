@@ -153,7 +153,7 @@ export default function AllDataPage() {
     field: { label: 'Полевые данные', color: '#70ad47' },
     washing: { label: 'Отдел промывки', color: '#4dd0c4' },
     assay: { label: 'Отдел проб', color: '#d67ab1' },
-    primary: { label: 'Проектные данные', color: '#e6a817' },
+    primary: { label: 'Проектные координаты', color: '#e6a817' },
   };
 
   const cellRows = (type, rec) => {

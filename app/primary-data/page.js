@@ -17,6 +17,7 @@ export default function PrimaryDataPage() {
   const [userSites, setUserSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('data');
+  const [coordTab, setCoordTab] = useState('msk02');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -318,23 +319,49 @@ export default function PrimaryDataPage() {
     fetchRecords();
   }
 
-  const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80, headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80, headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
-    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 80 },
+  const divider = { headerClass: 'col-divider', cellClass: 'col-divider' };
+
+  const commonCols = [
+    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor', ...divider },
+    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80, ...divider },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80, ...divider },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor', ...divider },
   ];
+
+  const depthCol = { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 80 };
+
+  const columnDefsMap = {
+    msk02: [
+      ...commonCols,
+      { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', ...divider },
+      depthCol,
+    ],
+    wgs84: [
+      ...commonCols,
+      { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 160, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', ...divider },
+      depthCol,
+    ],
+    gsk2011: [
+      ...commonCols,
+      { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+      depthCol,
+    ],
+  };
+
+  const columnDefs = columnDefsMap[coordTab] || columnDefsMap.msk02;
 
   const getRowId = useCallback((params) => params.data.id, []);
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '1.5rem' }}>
       <h1 style={{ marginBottom: '1.5rem' }}>
-        Проектные данные
+        Проектные координаты
         {getSelectedSite() && (
           <span style={{
             background: 'rgba(212,175,55,0.15)', color: '#d4af37',
@@ -344,7 +371,7 @@ export default function PrimaryDataPage() {
         )}
       </h1>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <button className={activeTab === 'data' ? 'btn-gold' : 'btn-outline-gold'} onClick={() => setActiveTab('data')}>
           Данные
         </button>
@@ -355,6 +382,31 @@ export default function PrimaryDataPage() {
           Назначение участков
         </button>
       </div>
+
+      {activeTab === 'data' && (
+        <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', borderBottom: '1px solid rgba(212,175,55,0.2)', paddingBottom: '0.6rem' }}>
+          {[
+            { key: 'msk02', label: 'МСК-02', icon: '📐' },
+            { key: 'wgs84', label: 'WGS-84', icon: '🌍' },
+            { key: 'gsk2011', label: 'ГСК-2011', icon: '🗺️' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setCoordTab(tab.key)}
+              style={{
+                background: coordTab === tab.key ? 'rgba(212,175,55,0.15)' : 'transparent',
+                color: coordTab === tab.key ? '#d4af37' : '#8a7e6a',
+                border: coordTab === tab.key ? '1px solid rgba(212,175,55,0.4)' : '1px solid transparent',
+                padding: '0.4rem 1rem', borderRadius: 8, cursor: 'pointer',
+                fontSize: '0.85rem', fontWeight: coordTab === tab.key ? 600 : 400,
+                transition: 'all 0.2s',
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {success && (
         <div style={{

@@ -173,7 +173,7 @@ export default function DashboardPage() {
       <div className="dash-section">
         <h2 className="dash-section-title">Быстрый доступ</h2>
         <div className="dash-links">
-          <Link href="/primary-data" className="dash-link">📐 Проектные данные</Link>
+          <Link href="/primary-data" className="dash-link">📐 Проектные координаты</Link>
           <Link href="/table" className="dash-link">📋 Все данные</Link>
           <Link href="/map" className="dash-link">🗺️ Карта</Link>
           <Link href="/import-export" className="dash-link">📤 Импорт/Экспорт</Link>

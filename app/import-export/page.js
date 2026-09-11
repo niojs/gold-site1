@@ -79,7 +79,7 @@ export default function ImportExportPage() {
           <option value="field">📝 Полевые данные</option>
           <option value="washing">🧪 Промывка</option>
           <option value="assay">⚗️ Пробы</option>
-          <option value="primary">📐 Проектные данные</option>
+          <option value="primary">📐 Проектные координаты</option>
         </select>
 
         <div className="ie-btn-row">
