@@ -105,6 +105,11 @@ export default function PrimaryDataPage() {
       holeNumber: data.hole_number,
       diameter: data.diameter,
       intervals: data.intervals,
+      queue: data.queue,
+      reserves_category: data.reserves_category,
+      depth: data.depth,
+      coordinates_msk02: data.coordinates_msk02,
+      coordinates_gsk2011: data.coordinates_gsk2011,
     };
 
     if (isNew) {
@@ -164,6 +169,11 @@ export default function PrimaryDataPage() {
       hole_number: '',
       diameter: '',
       intervals: '',
+      queue: null,
+      reserves_category: '',
+      depth: null,
+      coordinates_msk02: '',
+      coordinates_gsk2011: '',
       created_by: '',
       creator_name: '',
       isNew: true,
@@ -241,52 +251,62 @@ export default function PrimaryDataPage() {
     for (const r of newRecords) {
       if (!r.work_area || !r.hole_number) continue;
       await fetch('/api/primary-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workArea: r.work_area,
-          lineName: r.line_name,
-          latitude: r.latitude,
-          longitude: r.longitude,
-          elevation: r.elevation,
-          holeNumber: r.hole_number,
-          diameter: r.diameter,
-          intervals: r.intervals,
-        }),
-      });
-    }
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            workArea: r.work_area,
+            lineName: r.line_name,
+            latitude: r.latitude,
+            longitude: r.longitude,
+            elevation: r.elevation,
+            holeNumber: r.hole_number,
+            diameter: r.diameter,
+            intervals: r.intervals,
+            queue: r.queue,
+            reserves_category: r.reserves_category,
+            depth: r.depth,
+            coordinates_msk02: r.coordinates_msk02,
+            coordinates_gsk2011: r.coordinates_gsk2011,
+          }),
+        });
+      }
 
-    for (const r of editRecords) {
-      await fetch('/api/primary-data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: r.id,
-          workArea: r.work_area,
-          lineName: r.line_name,
-          latitude: r.latitude,
-          longitude: r.longitude,
-          elevation: r.elevation,
-          holeNumber: r.hole_number,
-          diameter: r.diameter,
-          intervals: r.intervals,
-        }),
-      });
-    }
+      for (const r of editRecords) {
+        await fetch('/api/primary-data', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: r.id,
+            workArea: r.work_area,
+            lineName: r.line_name,
+            latitude: r.latitude,
+            longitude: r.longitude,
+            elevation: r.elevation,
+            holeNumber: r.hole_number,
+            diameter: r.diameter,
+            intervals: r.intervals,
+            queue: r.queue,
+            reserves_category: r.reserves_category,
+            depth: r.depth,
+            coordinates_msk02: r.coordinates_msk02,
+            coordinates_gsk2011: r.coordinates_gsk2011,
+          }),
+        });
+      }
 
     showMsg('Все данные сохранены');
     fetchRecords();
   }
 
   const columnDefs = [
-    { headerName: 'Скважина', field: 'hole_number', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
-    { headerName: 'Участок', field: 'work_area', editable: true, minWidth: 120 },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor' },
     { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 100 },
-    { headerName: 'Широта', field: 'latitude', editable: true, type: 'numericColumn', minWidth: 100 },
-    { headerName: 'Долгота', field: 'longitude', editable: true, type: 'numericColumn', minWidth: 100 },
-    { headerName: 'Высота', field: 'elevation', editable: true, type: 'numericColumn', minWidth: 90 },
-    { headerName: 'Диаметр', field: 'diameter', editable: true, minWidth: 100 },
-    { headerName: 'Интервалы', field: 'intervals', editable: true, minWidth: 140, cellEditor: 'agLargeTextCellEditor', cellEditorPopup: true },
+    { headerName: 'Очередность', field: 'queue', editable: true, type: 'numericColumn', minWidth: 110 },
+    { headerName: 'Категория запас', field: 'reserves_category', editable: true, minWidth: 130, cellEditor: 'agTextCellEditor' },
+    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
+    { headerName: 'WGS-84', field: 'latitude', editable: false, minWidth: 140, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
+    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
+    { headerName: 'Проектная глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 140 },
     { headerName: 'Создал', field: 'creator_name', editable: false, minWidth: 120 },
   ];
 
