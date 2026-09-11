@@ -10,18 +10,55 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const GOLD_CSS = `
 html body .wg-grid .ag-header {
-  background: linear-gradient(180deg, #faf6ea, #f3edda) !important;
+  background: linear-gradient(180deg, #faf6ea, #f0e9d4) !important;
   border-bottom: 2px solid #d4af37 !important;
 }
 html body .wg-grid .ag-header-cell {
   color: #8a6d1f !important;
   font-weight: 600 !important;
+  font-size: 0.8rem !important;
+}
+html body .wg-grid .ag-header-cell-label {
+  justify-content: center !important;
+}
+html body .wg-grid .ag-column-group .ag-header-cell-label {
+  justify-content: center !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.02em !important;
+}
+html body .wg-grid .ag-column-group {
+  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
+}
+html body .wg-grid .ag-header-cell:not(.ag-column-group)::after {
+  content: '' !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 25% !important;
+  height: 50% !important;
+  width: 1px !important;
+  background: rgba(138,109,31,0.2) !important;
+}
+html body .wg-grid .ag-cell {
+  font-size: 0.82rem !important;
+  line-height: 1.4 !important;
+}
+html body .wg-grid .ag-cell:not(:last-child)::after {
+  content: '' !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 15% !important;
+  height: 70% !important;
+  width: 1px !important;
+  background: rgba(138,125,106,0.12) !important;
+}
+html body .wg-grid .ag-header-cell, html body .wg-grid .ag-cell {
+  position: relative !important;
 }
 html body .wg-grid .ag-row-hover {
-  background-color: rgba(212,175,55,0.07) !important;
+  background-color: rgba(212,175,55,0.06) !important;
 }
 html body .wg-grid .ag-row-selected {
-  background-color: rgba(212,175,55,0.14) !important;
+  background-color: rgba(212,175,55,0.12) !important;
 }
 html body .wg-grid .ag-cell-focus:focus {
   border-color: #d4af37 !important;
@@ -30,6 +67,10 @@ html body .wg-grid .ag-checkbox-input-wrapper.ag-checked::after {
   background-color: #d4af37 !important;
   border-color: #d4af37 !important;
 }
+html body .wg-grid .ag-paging-panel {
+  border-top: 1px solid rgba(212,175,55,0.15) !important;
+  background: rgba(250,246,234,0.5) !important;
+}
 html body .wg-grid .ag-paging-button {
   color: #8a6d1f !important;
 }
@@ -37,13 +78,17 @@ html body .wg-grid .ag-paging-button:hover {
   background: rgba(212,175,55,0.1) !important;
   border-color: #d4af37 !important;
 }
+html body .wg-grid .ag-overlay-no-rows-wrapper {
+  color: #a89a7e !important;
+  font-size: 0.9rem !important;
+}
 html body .wg-grid .ag-root-wrapper {
   border-radius: 12px !important;
   overflow: hidden !important;
   border: 1px solid rgba(212,175,55,0.2) !important;
 }
 html body .wg-grid .col-divider {
-  border-right: 1px solid rgba(138,125,106,0.2) !important;
+  border-right: 1px solid rgba(138,109,31,0.18) !important;
 }
 `;
 
@@ -161,6 +206,7 @@ export default function GoldGrid({
           pagination={true}
           paginationPageSize={1000}
           paginationPageSizeSelector={[50, 100, 200, 500, 1000, 5000]}
+          localeText={{ noRowsToShow: 'Нет данных для отображения' }}
         />
       </div>
     </div>
