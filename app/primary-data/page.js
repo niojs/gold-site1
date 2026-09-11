@@ -299,14 +299,14 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'Линия', field: 'line_name', editable: true, width: 90, flex: 0 },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90, flex: 0 },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 110, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'WGS-84', field: 'latitude', editable: false, width: 140, flex: 0, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
-    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 90, flex: 0 },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'Линия', field: 'line_name', editable: true, width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 110, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 130, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'WGS-84', field: 'latitude', editable: false, width: 140, wrapHeaderText: true, suppressHeaderMenuButton: true, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
+    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 130, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
   ];
 
   const getRowId = useCallback((params) => params.data.id, []);
@@ -351,14 +351,6 @@ export default function PrimaryDataPage() {
 
       {activeTab === 'data' && (
         <div>
-          <style>{`
-            .wg-grid .ag-header-cell-label { justify-content: flex-start; }
-            .wg-grid .ag-header-cell-label .ag-header-cell-text { white-space: normal !important; text-overflow: unset !important; font-size: 0.78rem; }
-            .wg-grid .ag-cell { font-size: 0.82rem; padding: 0 6px; line-height: 1.3; }
-            .wg-grid .ag-header-cell:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background: rgba(138,125,106,0.25); }
-            .wg-grid .ag-cell:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background: rgba(138,125,106,0.15); }
-            .wg-grid .ag-header-cell, .wg-grid .ag-cell { position: relative !important; }
-          `}</style>
           {loading ? (
             <div style={{ color: '#d4af37', textAlign: 'center', padding: '2rem' }}>Загрузка...</div>
           ) : (
@@ -373,6 +365,14 @@ export default function PrimaryDataPage() {
               onSave={handleSaveAll}
               saveLabel="Сохранить"
               height="65vh"
+              customDefaultColDef={{
+                editable: true,
+                resizable: true,
+                sortable: true,
+                filter: false,
+                suppressHeaderMenuButton: true,
+                wrapHeaderText: true,
+              }}
             />
           )}
         </div>

@@ -65,13 +65,14 @@ export default function GoldGrid({
   saveLabel,
   rowSelection = 'multiple',
   height = '65vh',
+  customDefaultColDef,
 }) {
   const gridRef = useRef(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => { ensureStylesheet(); }, []);
 
-  const defaultColDef = {
+  const defaultColDef = customDefaultColDef || {
     editable: true,
     resizable: true,
     sortable: true,
