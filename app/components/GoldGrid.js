@@ -13,16 +13,34 @@ html body .wg-grid .ag-header {
   background: linear-gradient(180deg, #faf6ea, #f0e9d4) !important;
   border-bottom: 2px solid #d4af37 !important;
 }
-html body .wg-grid .ag-column-group {
-  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
-}
-html body .wg-grid .ag-column-group .ag-header-cell-label {
-  justify-content: center !important;
-}
 html body .wg-grid .ag-header-cell {
   color: #8a6d1f !important;
   font-weight: 600 !important;
   font-size: 0.8rem !important;
+}
+html body .wg-grid .ag-header-cell:not(.ag-column-group)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: rgba(138,109,31,0.22);
+  pointer-events: none;
+}
+html body .wg-grid .ag-cell:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: rgba(138,125,106,0.18);
+  pointer-events: none;
+}
+html body .wg-grid .ag-header-cell,
+html body .wg-grid .ag-cell {
+  position: relative !important;
 }
 html body .wg-grid .ag-row-hover {
   background-color: rgba(212,175,55,0.06) !important;
@@ -40,9 +58,12 @@ html body .wg-grid .ag-checkbox-input-wrapper.ag-checked::after {
 html body .wg-grid .ag-paging-panel {
   border-top: 1px solid rgba(212,175,55,0.15) !important;
   background: rgba(250,246,234,0.5) !important;
+  font-size: 0.8rem !important;
+  color: #8a7e6a !important;
 }
 html body .wg-grid .ag-paging-button {
   color: #8a6d1f !important;
+  border-color: rgba(212,175,55,0.3) !important;
 }
 html body .wg-grid .ag-paging-button:hover {
   background: rgba(212,175,55,0.1) !important;
@@ -57,18 +78,15 @@ html body .wg-grid .ag-root-wrapper {
   overflow: hidden !important;
   border: 1px solid rgba(212,175,55,0.2) !important;
 }
-html body .wg-grid .col-divider {
-  border-right: 1px solid rgba(138,109,31,0.18) !important;
+html body .wg-grid .coord-group-header {
+  background: linear-gradient(180deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03)) !important;
+  border-bottom: 1px solid rgba(212,175,55,0.25) !important;
+}
+html body .wg-grid .coord-group-header .ag-header-cell-label {
+  justify-content: center !important;
 }
 html body .wg-grid .ag-column-group-icon {
   display: none !important;
-}
-html body .wg-grid .coord-group-header {
-  background: linear-gradient(180deg, rgba(212,175,55,0.08), rgba(212,175,55,0.03)) !important;
-  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
-}
-html body .wg-grid .col-divider {
-  border-right: 1px solid rgba(138,109,31,0.18) !important;
 }
 `;
 
