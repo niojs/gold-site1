@@ -299,15 +299,15 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor' },
-    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 100 },
-    { headerName: 'Очередность', field: 'queue', editable: true, type: 'numericColumn', minWidth: 110 },
-    { headerName: 'Категория запас', field: 'reserves_category', editable: true, minWidth: 130, cellEditor: 'agTextCellEditor' },
-    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
-    { headerName: 'WGS-84', field: 'latitude', editable: false, minWidth: 140, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
-    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
-    { headerName: 'Проектная глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 140 },
-    { headerName: 'Создал', field: 'creator_name', editable: false, minWidth: 120 },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, cellEditor: 'agTextCellEditor', flex: 0 },
+    { headerName: 'Линия', field: 'line_name', editable: true, width: 90, flex: 0 },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90, flex: 0 },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 110, cellEditor: 'agTextCellEditor', flex: 0 },
+    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
+    { headerName: 'WGS-84', field: 'latitude', editable: false, width: 140, flex: 0, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
+    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
+    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 90, flex: 0 },
+    { headerName: 'Создал', field: 'creator_name', editable: false, width: 100, flex: 0 },
   ];
 
   const getRowId = useCallback((params) => params.data.id, []);
@@ -352,6 +352,11 @@ export default function PrimaryDataPage() {
 
       {activeTab === 'data' && (
         <div>
+          <style>{`
+            .wg-grid .ag-header-cell-label { justify-content: flex-start; }
+            .wg-grid .ag-header-cell-label .ag-header-cell-text { white-space: normal !important; text-overflow: unset !important; font-size: 0.78rem; }
+            .wg-grid .ag-cell { font-size: 0.82rem; padding: 0 6px; line-height: 1.3; }
+          `}</style>
           {loading ? (
             <div style={{ color: '#d4af37', textAlign: 'center', padding: '2rem' }}>Загрузка...</div>
           ) : (
