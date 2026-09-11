@@ -159,8 +159,8 @@ export default function GoldGrid({
           stopEditingWhenCellsLoseFocus={true}
           suppressRowClickSelection={true}
           pagination={true}
-          paginationPageSize={50}
-          paginationPageSizeSelector={[25, 50, 100, 200]}
+          paginationPageSize={1000}
+          paginationPageSizeSelector={[50, 100, 200, 500, 1000, 5000]}
         />
       </div>
     </div>
