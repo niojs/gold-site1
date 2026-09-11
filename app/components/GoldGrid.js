@@ -18,41 +18,8 @@ html body .wg-grid .ag-header-cell {
   font-weight: 600 !important;
   font-size: 0.8rem !important;
 }
-html body .wg-grid .ag-header-cell-label {
-  justify-content: center !important;
-}
 html body .wg-grid .ag-column-group .ag-header-cell-label {
   justify-content: center !important;
-  font-size: 0.82rem !important;
-  letter-spacing: 0.02em !important;
-}
-html body .wg-grid .ag-column-group {
-  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
-}
-html body .wg-grid .ag-header-cell:not(.ag-column-group)::after {
-  content: '' !important;
-  position: absolute !important;
-  right: 0 !important;
-  top: 25% !important;
-  height: 50% !important;
-  width: 1px !important;
-  background: rgba(138,109,31,0.2) !important;
-}
-html body .wg-grid .ag-cell {
-  font-size: 0.82rem !important;
-  line-height: 1.4 !important;
-}
-html body .wg-grid .ag-cell:not(:last-child)::after {
-  content: '' !important;
-  position: absolute !important;
-  right: 0 !important;
-  top: 15% !important;
-  height: 70% !important;
-  width: 1px !important;
-  background: rgba(138,125,106,0.12) !important;
-}
-html body .wg-grid .ag-header-cell, html body .wg-grid .ag-cell {
-  position: relative !important;
 }
 html body .wg-grid .ag-row-hover {
   background-color: rgba(212,175,55,0.06) !important;

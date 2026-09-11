@@ -318,18 +318,16 @@ export default function PrimaryDataPage() {
     fetchRecords();
   }
 
-  const divider = { headerClass: 'col-divider', cellClass: 'col-divider' };
-
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor', ...divider },
-    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80, ...divider },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80, ...divider },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor', ...divider },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor' },
+    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80 },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80 },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor' },
     {
       headerName: 'Проектные координаты',
       children: [
-        { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', ...divider },
-        { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', ...divider },
+        { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
+        { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor' },
         { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor' },
       ],
     },
