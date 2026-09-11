@@ -16,31 +16,29 @@ html body .wg-grid .ag-header {
 html body .wg-grid .ag-header-cell {
   color: #8a6d1f !important;
   font-weight: 600 !important;
-  font-size: 0.8rem !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  border-right: 1px solid rgba(138,109,31,0.18) !important;
 }
-html body .wg-grid .ag-header-cell:not(.ag-column-group)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 25%;
-  height: 50%;
-  width: 1px;
-  background: rgba(138,109,31,0.22);
-  pointer-events: none;
+html body .wg-grid .ag-header-cell:last-child {
+  border-right: none !important;
 }
-html body .wg-grid .ag-cell:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 15%;
-  height: 70%;
-  width: 1px;
-  background: rgba(138,125,106,0.18);
-  pointer-events: none;
-}
-html body .wg-grid .ag-header-cell,
 html body .wg-grid .ag-cell {
-  position: relative !important;
+  border-right: 1px solid rgba(138,125,106,0.12) !important;
+  font-size: 0.85rem !important;
+  color: #e0dcc8 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+html body .wg-grid .ag-cell:last-child {
+  border-right: none !important;
+}
+html body .wg-grid .ag-row-even {
+  background: rgba(10,10,10,0.3) !important;
+}
+html body .wg-grid .ag-row-odd {
+  background: rgba(20,18,15,0.5) !important;
 }
 html body .wg-grid .ag-row-hover {
   background-color: rgba(212,175,55,0.06) !important;
@@ -77,6 +75,17 @@ html body .wg-grid .ag-root-wrapper {
   border-radius: 12px !important;
   overflow: hidden !important;
   border: 1px solid rgba(212,175,55,0.2) !important;
+}
+html body .wg-grid .ag-body-viewport {
+  background: #0f0e0c !important;
+}
+html body .wg-grid .ag-cell-input {
+  color: #e0dcc8 !important;
+  background: rgba(10,10,10,0.6) !important;
+}
+html body .wg-grid .ag-theme-alpine .ag-checkbox-input-wrapper {
+  width: 18px !important;
+  height: 18px !important;
 }
 `;
 

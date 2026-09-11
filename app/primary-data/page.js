@@ -319,14 +319,13 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 85, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'Линия', field: 'line_name', editable: true, width: 90, flex: 0 },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 85, flex: 0 },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 110, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'WGS-84', field: 'wgs84', editable: true, width: 150, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 130, cellEditor: 'agTextCellEditor', flex: 0 },
-    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 90, flex: 0 },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, cellEditor: 'agTextCellEditor' },
+    { headerName: 'Линия', field: 'line_name', editable: true, width: 100 },
+    { headerName: 'Очерёдность', field: 'queue', editable: true, type: 'numericColumn', width: 110 },
+    { headerName: 'Категория запас', field: 'reserves_category', editable: true, width: 135, cellEditor: 'agTextCellEditor' },
+    { headerName: 'WGS-84', field: 'wgs84', editable: true, width: 160, cellEditor: 'agTextCellEditor' },
+    { headerName: 'Проектная', field: 'coordinates_msk02', editable: true, width: 140, cellEditor: 'agTextCellEditor' },
+    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 100 },
   ];
 
   const getRowId = useCallback((params) => params.data.id, []);
@@ -391,7 +390,6 @@ export default function PrimaryDataPage() {
                 sortable: false,
                 filter: false,
                 suppressHeaderMenuButton: true,
-                flex: 0,
               }}
             />
           )}
