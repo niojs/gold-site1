@@ -78,16 +78,6 @@ html body .wg-grid .ag-root-wrapper {
   overflow: hidden !important;
   border: 1px solid rgba(212,175,55,0.2) !important;
 }
-html body .wg-grid .coord-group-header {
-  background: linear-gradient(180deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03)) !important;
-  border-bottom: 1px solid rgba(212,175,55,0.25) !important;
-}
-html body .wg-grid .coord-group-header .ag-header-cell-label {
-  justify-content: center !important;
-}
-html body .wg-grid .ag-column-group-icon {
-  display: none !important;
-}
 `;
 
 function ensureStylesheet() {

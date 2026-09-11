@@ -323,15 +323,9 @@ export default function PrimaryDataPage() {
     { headerName: 'Линия', field: 'line_name', editable: true, width: 100 },
     { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90 },
     { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 120, cellEditor: 'agTextCellEditor' },
-    {
-      headerName: 'Проектные координаты',
-      headerClass: 'coord-group-header',
-      children: [
-        { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 150, cellEditor: 'agTextCellEditor' },
-        { headerName: 'WGS-84', field: 'wgs84', editable: true, width: 170, cellEditor: 'agTextCellEditor' },
-        { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 150, cellEditor: 'agTextCellEditor' },
-      ],
-    },
+    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 150, cellEditor: 'agTextCellEditor' },
+    { headerName: 'WGS-84', field: 'wgs84', editable: true, width: 170, cellEditor: 'agTextCellEditor' },
+    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 150, cellEditor: 'agTextCellEditor' },
     { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 100 },
   ];
 
