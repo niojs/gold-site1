@@ -183,7 +183,7 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
 
       let statusText = '';
       if (point.type === 'primary') {
-        statusText = 'Первичные данные';
+        statusText = 'Проектные данные';
       } else if (point.type === 'drilling') {
         if (isDrilled) statusText = 'Пробурена';
         else if (point.queue) statusText = `${point.queue}-я очередь`;
@@ -229,7 +229,7 @@ export default function LeafletMap({ points, canEdit, onEdit, onDelete }) {
             <option value="Скважина">Скважины</option>
             <option value="Участок">Участки</option>
             <option value="Проба">Пробы</option>
-            <option value="Первичные">Первичные данные</option>
+            <option value="Первичные">Проектные данные</option>
           </select>
         </div>
       </div>

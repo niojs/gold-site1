@@ -314,7 +314,16 @@ export default function PrimaryDataPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '1.5rem' }}>
-      <h1 style={{ marginBottom: '1.5rem' }}>Первичные данные</h1>
+      <h1 style={{ marginBottom: '1.5rem' }}>
+        Проектные данные
+        {getSelectedSite() && (
+          <span style={{
+            background: 'rgba(212,175,55,0.15)', color: '#d4af37',
+            fontSize: '0.8rem', fontWeight: 600, padding: '0.25rem 0.7rem', borderRadius: 20,
+            marginLeft: '0.8rem', verticalAlign: 'middle',
+          }}>{getSelectedSite()}</span>
+        )}
+      </h1>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <button className={activeTab === 'data' ? 'btn-gold' : 'btn-outline-gold'} onClick={() => setActiveTab('data')}>

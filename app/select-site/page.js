@@ -96,7 +96,7 @@ export default function SelectSitePage() {
           {(user?.role === 'admin' || user?.role === 'chief_geologist') ? (
             <>
               <p style={{ color: '#8a7e6a', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                Перейдите в «Первичные данные» чтобы добавить участки
+                Перейдите в «Проектные данные» чтобы добавить участки
               </p>
               <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button className="btn-gold" onClick={() => { document.cookie = `selected_site=__none__; path=/; max-age=${60 * 60 * 24}`; router.push('/primary-data'); }}>

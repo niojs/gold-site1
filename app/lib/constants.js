@@ -35,7 +35,7 @@ export const DATA_TYPES = {
   field: { label: 'Полевые данные', color: '#70ad47', icon: '📝' },
   washing: { label: 'Промывка', color: '#4dd0c4', icon: '🧪' },
   assay: { label: 'Пробы', color: '#d67ab1', icon: '⚗️' },
-  primary: { label: 'Первичные данные', color: '#e6a817', icon: '📐' },
+  primary: { label: 'Проектные данные', color: '#e6a817', icon: '📐' },
 };
 
 export const SITE_COOKIE = 'selected_site';
