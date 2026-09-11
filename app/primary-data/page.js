@@ -44,7 +44,10 @@ export default function PrimaryDataPage() {
       const res = await fetch('/api/primary-data');
       if (res.ok) {
         const data = await res.json();
-        const all = data.records || [];
+        const all = (data.records || []).map(r => ({
+          ...r,
+          wgs84: r.latitude && r.longitude ? `${r.latitude}, ${r.longitude}` : '',
+        }));
         const site = getSelectedSite();
         const filtered = site ? all.filter(r => (r.work_area || '') === site) : all;
         setRecords(filtered);
@@ -93,14 +96,30 @@ export default function PrimaryDataPage() {
   };
 
   async function handleCellValueChanged(params) {
-    const { data } = params;
+    const { data, colDef } = params;
     const isNew = String(data.id).startsWith('temp-');
+
+    let latitude = data.latitude;
+    let longitude = data.longitude;
+
+    if (colDef.field === 'wgs84' && data.wgs84) {
+      const parts = data.wgs84.split(',').map(s => s.trim());
+      if (parts.length === 2) {
+        const lat = parseFloat(parts[0]);
+        const lon = parseFloat(parts[1]);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          latitude = lat;
+          longitude = lon;
+          setRecords(prev => prev.map(r => r.id === data.id ? { ...r, latitude: lat, longitude: lon } : r));
+        }
+      }
+    }
 
     const payload = {
       workArea: data.work_area,
       lineName: data.line_name,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      latitude,
+      longitude,
       elevation: data.elevation,
       holeNumber: data.hole_number,
       diameter: data.diameter,
@@ -174,6 +193,7 @@ export default function PrimaryDataPage() {
       depth: null,
       coordinates_msk02: '',
       coordinates_gsk2011: '',
+      wgs84: '',
       created_by: '',
       creator_name: '',
       isNew: true,
@@ -299,14 +319,14 @@ export default function PrimaryDataPage() {
   }
 
   const columnDefs = [
-    { headerName: '№СКВ', field: 'hole_number', editable: true, width: 90, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'Линия', field: 'line_name', editable: true, width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, width: 110, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, width: 130, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'WGS-84', field: 'latitude', editable: false, width: 140, wrapHeaderText: true, suppressHeaderMenuButton: true, valueFormatter: p => p.data.latitude && p.data.longitude ? `${p.data.latitude}, ${p.data.longitude}` : '' },
-    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, width: 130, cellEditor: 'agTextCellEditor', wrapHeaderText: true, suppressHeaderMenuButton: true },
-    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', width: 90, wrapHeaderText: true, suppressHeaderMenuButton: true },
+    { headerName: '№СКВ', field: 'hole_number', editable: true, minWidth: 80, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'Линия', field: 'line_name', editable: true, minWidth: 80, headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'Очерёдн.', field: 'queue', editable: true, type: 'numericColumn', minWidth: 80, headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'Катег. запас', field: 'reserves_category', editable: true, minWidth: 100, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'МСК-02', field: 'coordinates_msk02', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'WGS-84', field: 'wgs84', editable: true, minWidth: 140, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'ГСК-2011', field: 'coordinates_gsk2011', editable: true, minWidth: 120, cellEditor: 'agTextCellEditor', headerClass: 'col-divider', cellClass: 'col-divider' },
+    { headerName: 'Глубина', field: 'depth', editable: true, type: 'numericColumn', minWidth: 80 },
   ];
 
   const getRowId = useCallback((params) => params.data.id, []);
@@ -368,10 +388,11 @@ export default function PrimaryDataPage() {
               customDefaultColDef={{
                 editable: true,
                 resizable: true,
-                sortable: true,
+                sortable: false,
                 filter: false,
                 suppressHeaderMenuButton: true,
                 wrapHeaderText: true,
+                flex: 1,
               }}
             />
           )}

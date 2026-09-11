@@ -42,6 +42,9 @@ html body .wg-grid .ag-root-wrapper {
   overflow: hidden !important;
   border: 1px solid rgba(212,175,55,0.2) !important;
 }
+html body .wg-grid .col-divider {
+  border-right: 1px solid rgba(138,125,106,0.2) !important;
+}
 `;
 
 function ensureStylesheet() {
