@@ -13,13 +13,16 @@ html body .wg-grid .ag-header {
   background: linear-gradient(180deg, #faf6ea, #f0e9d4) !important;
   border-bottom: 2px solid #d4af37 !important;
 }
+html body .wg-grid .ag-column-group {
+  border-bottom: 1px solid rgba(212,175,55,0.3) !important;
+}
+html body .wg-grid .ag-column-group .ag-header-cell-label {
+  justify-content: center !important;
+}
 html body .wg-grid .ag-header-cell {
   color: #8a6d1f !important;
   font-weight: 600 !important;
   font-size: 0.8rem !important;
-}
-html body .wg-grid .ag-column-group .ag-header-cell-label {
-  justify-content: center !important;
 }
 html body .wg-grid .ag-row-hover {
   background-color: rgba(212,175,55,0.06) !important;
