@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
 import { sendTelegram } from '../../../lib/notify';
+import { verifySession } from '../../../lib/session';
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session')?.value;
+    const sessionId = verifySession(cookieStore.get('session')?.value);
     const siteFilter = cookieStore.get('selected_site')?.value;
 
     if (!sessionId) {
@@ -54,7 +55,7 @@ export async function GET() {
 
 export async function POST(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
@@ -115,7 +116,7 @@ export async function POST(request) {
 
 export async function PUT(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
@@ -166,7 +167,7 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
 
   if (!sessionId) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });

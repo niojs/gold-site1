@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
+import { verifySession } from '../../../lib/session';
 
 const CAN_MANAGE = ['admin', 'chief_geologist'];
 
 async function getUser() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   if (!sessionId) return null;
   const result = await query('SELECT * FROM users WHERE id = $1', [sessionId]);
   return result.rows[0] || null;

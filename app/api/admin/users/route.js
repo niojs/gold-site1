@@ -3,10 +3,11 @@ import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
 import { logAudit } from '../../../../lib/audit';
 import bcrypt from 'bcryptjs';
+import { verifySession } from '../../../../lib/session';
 
 async function isAdmin() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   if (!sessionId) return false;
   const result = await query('SELECT role FROM users WHERE id = $1', [sessionId]);
   const user = result.rows[0];
