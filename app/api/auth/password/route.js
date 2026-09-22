@@ -3,12 +3,13 @@ import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { query } from '../../../../lib/db';
 import { logAudit } from '../../../../lib/audit';
+import { verifySession } from '../../../../lib/session';
 
 // PUT /api/auth/password — смена собственного пароля.
 // body: { oldPassword, newPassword } (минимум 6 символов)
 export async function PUT(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   if (!sessionId) {
     return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   }

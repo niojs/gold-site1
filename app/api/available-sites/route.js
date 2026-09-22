@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
+import { verifySession } from '../../../lib/session';
 
 export async function GET() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   if (!sessionId) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
   const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);

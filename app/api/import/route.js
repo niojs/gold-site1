@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../lib/db';
 import * as XLSX from 'xlsx';
+import { verifySession } from '../../../lib/session';
 
 const TABLE_COLUMNS = {
   drilling_records: ['id', 'user_id', 'site', 'date', 'hole_number', 'diameter', 'start_time', 'end_time', 'coordinates', 'created_at', 'queue', 'is_drilled', 'project_coordinates', 'true_coordinates'],
@@ -87,7 +88,7 @@ function isEmpty(v) {
 
 export async function POST(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   if (!sessionId) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
   const userResult = await query('SELECT role FROM users WHERE id = $1', [sessionId]);

@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
 import { logAudit } from '../../../../lib/audit';
+import { verifySession } from '../../../../lib/session';
 
 // Проверка: авторизован и админ/главный геолог
 async function checkAccess() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
 
   if (!sessionId) {
     return { error: 'Не авторизован', status: 401 };

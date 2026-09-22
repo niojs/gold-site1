@@ -1,11 +1,12 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
+import { verifySession } from '../../../../lib/session';
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session')?.value;
+    const sessionId = verifySession(cookieStore.get('session')?.value);
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });

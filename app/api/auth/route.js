@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '../../../lib/db';
+import { signSession, sessionCookieOptions, SESSION_COOKIE } from '../../../lib/session';
 
 export async function POST(request) {
   try {
@@ -33,13 +34,7 @@ export async function POST(request) {
     }
 
     const cookieStore = await cookies();
-    cookieStore.set('session', user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24,
-      path: '/',
-    });
+    cookieStore.set(SESSION_COOKIE, signSession(user.id), sessionCookieOptions());
 
     return NextResponse.json({
       id: user.id,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { query } from '../../../../lib/db';
+import { verifySession } from '../../../../lib/session';
 
 const CAN_EDIT = ['admin', 'chief_geologist', 'field_geologist'];
 const CAN_VIEW_MAP = ['admin', 'chief_geologist', 'field_geologist'];
@@ -13,7 +14,7 @@ async function getCurrentUser(sessionId) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   const siteFilter = cookieStore.get('selected_site')?.value;
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
@@ -82,7 +83,7 @@ export async function GET() {
 
 export async function POST(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   if (!CAN_EDIT.includes(user.role)) {
@@ -148,7 +149,7 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   if (!CAN_EDIT.includes(user.role)) {
@@ -212,7 +213,7 @@ export async function PATCH(request) {
 
 export async function DELETE(request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('session')?.value;
+  const sessionId = verifySession(cookieStore.get('session')?.value);
   const user = await getCurrentUser(sessionId);
   if (!user) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   if (!CAN_EDIT.includes(user.role)) {
